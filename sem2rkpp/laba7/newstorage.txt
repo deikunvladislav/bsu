@@ -1,0 +1,7 @@
+key : danya value : 16
+key : gleb value : 15
+key : jopa value : 55
+key : kate value : 20
+key : lera value : 19
+key : tanya value : 47
+key : vlad value : 18

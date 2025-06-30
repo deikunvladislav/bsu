@@ -1,0 +1,13 @@
+users data : 
+user name : jfkgfg
+user's password : 26587
+history of operations
+Operation № 1 5478 USD was converted to 4854.06 EUR
+Operation № 2 5478 USD was converted to 39441.6 CNH
+Operation № 3 5478 USD was converted to 436432 RUB
+Operation № 4 5478 USD was converted to 16543.6 BYN
+Operation № 5 4895 BYN was converted to 233785 JPY
+Operation № 6 4895 BYN was converted to 1442.56 EUR
+Operation № 7 4895 BYN was converted to 1629.55 USD
+Operation № 8 4895 BYN was converted to 130158 RUB
+Operation № 9 4895 BYN was converted to 233785 JPY

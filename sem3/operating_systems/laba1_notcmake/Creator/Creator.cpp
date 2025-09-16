@@ -1,9 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include <string>
-using namespace std;
+#include "../laba1_tester/pch.h"
 
 struct employee {
     int num;

@@ -1,7 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-using namespace std;
+#include "../laba1_tester/pch.h"
 
 struct employee {
     int num;

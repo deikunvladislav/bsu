@@ -4,18 +4,34 @@
 #include <fstream>
 #include <string>
 #include <limits>
+#include <vector>
+
 using namespace std;
 
-void waitAndClose(PROCESS_INFORMATION& pi) {
+static void waitAndClose(PROCESS_INFORMATION& pi) {
     WaitForSingleObject(pi.hProcess, INFINITE);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 }
 
-bool runChild(const string& cmdLine) {
-    STARTUPINFOA si = { sizeof(si) };
-    PROCESS_INFORMATION pi;
-    if (!CreateProcessA(nullptr, (LPSTR)cmdLine.c_str(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
+static bool runChildMutable(string cmdLine) {
+    STARTUPINFOA si = {};
+    si.cb = sizeof(si);
+    PROCESS_INFORMATION pi = {};
+    vector<char> buf(cmdLine.begin(), cmdLine.end());
+    buf.push_back('\0');
+
+    if (!CreateProcessA(
+            nullptr,
+            buf.data(),
+            nullptr,
+            nullptr,
+            FALSE,
+            0,
+            nullptr,
+            nullptr,
+            &si,
+            &pi)) {
         cerr << "Failed to start: " << cmdLine << "\n";
         return false;
     }
@@ -24,7 +40,7 @@ bool runChild(const string& cmdLine) {
 }
 
 template<typename T>
-void printBinaryFile(const string& filename) {
+static void printBinaryFile(const string& filename) {
     ifstream ifs(filename, ios::binary);
     if (!ifs) {
         cerr << "Cannot open binary file: " << filename << "\n";
@@ -34,12 +50,12 @@ void printBinaryFile(const string& filename) {
     T rec;
     while (ifs.read(reinterpret_cast<char*>(&rec), sizeof(rec))) {
         cout << " Num=" << rec.num
-            << " Name=" << rec.name
-            << " Hours=" << rec.hours << "\n";
+             << " Name=" << rec.name
+             << " Hours=" << rec.hours << "\n";
     }
 }
 
-void printTextFile(const string& filename) {
+static void printTextFile(const string& filename) {
     ifstream ifs(filename);
     if (!ifs) {
         cerr << "Cannot open report: " << filename << "\n";
@@ -52,27 +68,62 @@ void printTextFile(const string& filename) {
     }
 }
 
+static bool fileExists(const string& path) {
+    DWORD attrs = GetFileAttributesA(path.c_str());
+    return attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+static void touchEmptyBinary(const string& path) {
+    ofstream(path, ios::binary).close();
+}
+
+static void touchEmptyText(const string& path) {
+    ofstream(path).close();
+}
+
 int main() {
     string binFile;
-    int count;
     cout << "Enter binary file name: ";
     getline(cin, binFile);
+
+    int count = 0;
     cout << "Enter number of records: ";
-    cin >> count;
+    if (!(cin >> count)) {
+        cin.clear();
+    }
+    if (count < 0) count = 0;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    string cmd1 = "Creator.exe " + binFile + " " + to_string(count);
-    if (!runChild(cmd1)) return 1;
+    if (count == 0) {
+        touchEmptyBinary(binFile);
+    }
+    {
+        string cmd1 = "Creator.exe " + string("\"") + binFile + "\" " + to_string(count);
+        bool okCreator = runChildMutable(cmd1);
+        if (!okCreator && !fileExists(binFile)) {
+            touchEmptyBinary(binFile);
+        }
+    }
     struct employee { int num; char name[10]; double hours; };
     printBinaryFile<employee>(binFile);
     string reportFile;
-    double rate;
     cout << "Enter report file name: ";
     getline(cin, reportFile);
+    double rate = 0.0;
     cout << "Enter rate per hour: ";
-    cin >> rate;
+    if (!(cin >> rate)) {
+        cin.clear();
+        rate = 0.0;
+    }
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    string cmd2 = "Reporter.exe " + binFile + " " + reportFile + " " + to_string(rate);
-    if (!runChild(cmd2)) return 1;
+    if (rate < 0.0) rate = 0.0;
+    touchEmptyText(reportFile);
+    {
+        string cmd2 = "Reporter.exe " + string("\"") + binFile + "\" \"" + reportFile + "\" " + to_string(rate);
+        bool okReporter = runChildMutable(cmd2);
+        if (!okReporter && !fileExists(reportFile)) {
+            touchEmptyText(reportFile);
+        }
+    }
     printTextFile(reportFile);
     return 0;
 }

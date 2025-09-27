@@ -14,6 +14,14 @@ struct employee {
     double hours;
 };
 
+static bool FileExistsA(const char* path) {
+    DWORD attrs = GetFileAttributesA(path);
+    return attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+static bool FileExistsA(const std::string& path) {
+    return FileExistsA(path.c_str());
+}
+
 namespace LabTests
 {
     TEST_CLASS(LabIntegrationTests)
@@ -111,12 +119,6 @@ namespace LabTests
         {
             const string binFile = "test_main_employees.dat";
             const string reportFile = "test_main_report.txt";
-
-            // prepare the sequence of console inputs:
-            //   1) binary filename
-            //   2) record count = 0
-            //   3) report filename
-            //   4) rate per hour = 0.0
             string consoleInput =
                 binFile + "\n" +
                 "0\n" +
@@ -126,7 +128,7 @@ namespace LabTests
             SECURITY_ATTRIBUTES sa{ sizeof(sa), nullptr, TRUE };
             HANDLE hReadStdin, hWriteStdin;
             Assert::IsTrue(CreatePipe(&hReadStdin, &hWriteStdin, &sa, 0));
-            Assert::IsTrue(SetHandleInformation(hWriteStdin, HANDLE_FLAG_INHERIT, 1));
+            Assert::IsTrue(SetHandleInformation(hWriteStdin, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT));
 
             STARTUPINFOA si{ sizeof(si) };
             si.dwFlags = STARTF_USESTDHANDLES;
@@ -136,9 +138,12 @@ namespace LabTests
 
             PROCESS_INFORMATION pi;
             string cmd = "Main.exe";
+            vector<char> cmdBuf(cmd.begin(), cmd.end());
+            cmdBuf.push_back('\0');
+
             BOOL success = CreateProcessA(
                 nullptr,
-                (LPSTR)cmd.data(),
+                cmdBuf.data(),
                 nullptr,
                 nullptr,
                 TRUE,
@@ -163,14 +168,8 @@ namespace LabTests
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
 
-            // check that Main.exe created both files, even if empty
-            ifstream binFs(binFile, ios::binary);
-            Assert::IsTrue(binFs.is_open());
-            binFs.close();
-
-            ifstream repFs(reportFile);
-            Assert::IsTrue(repFs.is_open());
-            repFs.close();
+            Assert::IsTrue(FileExistsA(binFile), L"Binary file was not created");
+            Assert::IsTrue(FileExistsA(reportFile), L"Report file was not created");
 
             remove(binFile.c_str());
             remove(reportFile.c_str());

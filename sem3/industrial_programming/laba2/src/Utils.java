@@ -23,9 +23,12 @@ public class Utils {
         return pattern.matcher(s).replaceAll(match -> {
             String left = match.group(1);
             String right = match.group(2);
-            return (left != null && right != null) ? left : "";
+            if (left != null && right != null) return left;
+            if (left != null) return left;
+            if (right != null) return right;
+            return "";
         });
-    }
+    }       
 
     public static List<String> extractTimePatterns(String input) {
         List<String> times = new ArrayList<>();

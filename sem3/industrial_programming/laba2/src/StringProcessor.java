@@ -66,7 +66,7 @@ public class StringProcessor {
         return output.toString();
     }
 
-    private List<String> tokenize(String str, String delims) {
+    public List<String> tokenize(String str, String delims) {
         StringTokenizer tokenizer = new StringTokenizer(str, delims);
         List<String> tokens = new ArrayList<>();
         while (tokenizer.hasMoreTokens()) {

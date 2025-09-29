@@ -1,0 +1,59 @@
+﻿{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "hidden": false,
+      "generator": "Ninja",
+      "description": "Default configuration using Ninja generator",
+      "binaryDir": "${sourceDir}/build/default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "msvc",
+      "hidden": false,
+      "generator": "Visual Studio 17 2022",
+      "description": "MSVC configuration for Visual Studio",
+      "binaryDir": "${sourceDir}/build/msvc",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "description": "Build using Ninja",
+      "hidden": false
+    },
+    {
+      "name": "msvc",
+      "configurePreset": "msvc",
+      "description": "Build using MSVC",
+      "hidden": false
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "description": "Run tests with Ninja build",
+      "hidden": false
+    },
+    {
+      "name": "msvc",
+      "configurePreset": "msvc",
+      "description": "Run tests with MSVC build",
+      "hidden": false
+    }
+  ]
+}

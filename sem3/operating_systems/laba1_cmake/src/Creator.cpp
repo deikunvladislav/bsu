@@ -1,21 +1,26 @@
-#include "../common/utils.h"
+#include "employee.h"
+#include <fstream>
 #include <iostream>
-using namespace std;
+#include <vector>
+#include <string>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
-        cout << "Usage: Creator <filename> <count>\n";
+        std::cout << "Usage: Creator <binary_file> <count>\n";
         return 1;
     }
-    string filename = argv[1];
-    int count = stoi(argv[2]);
-    vector<employee> data;
+    std::string binFile = argv[1];
+    int count = std::stoi(argv[2]);
+    std::vector<employee> employees;
     for (int i = 0; i < count; ++i) {
         employee e;
-        cout << "Enter employee #" << (i + 1) << " (num name hours): ";
-        cin >> e.num >> e.name >> e.hours;
-        data.push_back(e);
+        std::cout << "Enter employee #" << (i + 1) << " (num name hours): ";
+        std::cin >> e;
+        employees.push_back(e);
     }
-    io::writeBinaryFile(filename, data);
+    std::ofstream out(binFile, std::ios::binary);
+    for (const auto& e : employees) {
+        e.write(out);
+    }
     return 0;
 }

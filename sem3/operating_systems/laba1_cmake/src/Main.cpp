@@ -1,30 +1,20 @@
-#include "../common/utils.h"
+#include "utils.h"
 #include <iostream>
-#include <fstream>
 #include <string>
-using namespace std;
 
 int main() {
-    string binFile, reportFile;
+    std::string binFile, reportFile;
     int count;
     double rate;
-    cout << "Enter binary filename and record count: ";
-    cin >> binFile >> count;
-    io::runProcess("Creator.exe", binFile + " " + to_string(count));
-    auto data = io::readBinaryFile(binFile);
-    for (const auto& e : data) {
-        cout << e.to_string(0) << '\n';
-    }
-    cout << "Enter report filename and hourly rate: ";
-    cin >> reportFile >> rate;
-    io::runProcess("Reporter.exe", binFile + " " + reportFile + " " + to_string(rate));
-    ifstream ifs(reportFile);
-    if (ifs) {
-        cout << "\nReport:\n" << ifs.rdbuf();
-    }
-    else {
-        cout << "File error.\n";
-        return 1;
-    }
+    std::cout << "Enter binary file name: ";
+    std::cin >> binFile;
+    std::cout << "Enter number of employees: ";
+    std::cin >> count;
+    utils::runProcess("Creator.exe", binFile + " " + std::to_string(count));
+    std::cout << "Enter report file name: ";
+    std::cin >> reportFile;
+    std::cout << "Enter hourly rate: ";
+    std::cin >> rate;
+    utils::runProcess("Reporter.exe", binFile + " " + reportFile + " " + std::to_string(rate));
     return 0;
 }

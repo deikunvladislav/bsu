@@ -1,86 +1,169 @@
 #include <gtest/gtest.h>
-#include "../common/utils.h"
+#include "employee.h"
 #include <fstream>
-#include <cstdio>
 #include <sstream>
-using namespace std;
+#include <cstdio>
+#include <vector>
 
-class EmployeeTests : public ::testing::Test {
-protected:
-    employee e{ 42, "Test", 8.5 };
-};
-
-TEST_F(EmployeeTests, SalaryCalculationIsCorrect) {
-    EXPECT_DOUBLE_EQ(e.salary(10.0), 85.0);
+employee make(int num, const char* name, double hours) {
+    employee e{};
+    e.num = num;
+    std::memset(e.name, 0, sizeof(e.name));
+    std::strncpy(e.name, name, sizeof(e.name) - 1);
+    e.hours = hours;
+    return e;
 }
 
-TEST_F(EmployeeTests, ToStringFormatsCorrectly) {
-    EXPECT_EQ(e.to_string(10.0), "42\tTest\t8.5\t85.00");
+TEST(EmployeeIO, BinaryReadWritePreservesData) {
+    employee original = make(42, "TestUser", 1234.56);
+    std::ofstream out("test.bin", std::ios::binary);
+    original.write(out);
+    out.close();
+
+    std::ifstream in("test.bin", std::ios::binary);
+    employee loaded;
+    loaded.read(in);
+    in.close();
+
+    std::remove("test.bin");
+    EXPECT_EQ(original, loaded);
 }
 
-TEST_F(EmployeeTests, EqualityOperatorWorks) {
-    employee e2{ 42, "Test", 8.5 };
-    EXPECT_TRUE(e == e2);
+TEST(EmployeeIO, TextWriteMatchesStreamOutput) {
+    employee e = make(1, "Alice", 5000.0);
+    std::ostringstream oss;
+    e.writeText(oss);
+    EXPECT_EQ(oss.str(), "1\tAlice\t5000\n");
 }
 
-TEST_F(EmployeeTests, InequalityDetected) {
-    employee e2{ 43, "Test", 8.5 };
-    EXPECT_FALSE(e == e2);
+TEST(EmployeeOperators, StreamInputParsesCorrectly) {
+    std::istringstream iss("99 John 12.5");
+    employee e;
+    iss >> e;
+    EXPECT_EQ(e.num, 99);
+    EXPECT_STREQ(e.name, "John");
+    EXPECT_DOUBLE_EQ(e.hours, 12.5);
 }
 
-class FileIOTests : public ::testing::Test {
-protected:
-    string binFile = "test_io.bin";
-    string reportFile = "test_io.txt";
-    vector<employee> sample;
+TEST(EmployeeOperators, StreamOutputFormatsCorrectly) {
+    employee e = make(2, "Bob", 6000.0);
+    std::ostringstream oss;
+    oss << e;
+    EXPECT_EQ(oss.str(), "2\tBob\t6000");
+}
 
-    void SetUp() override {
-        sample = {
-            {1, "Ivan", 10.0},
-            {2, "Anna", 12.5}
-        };
+TEST(EmployeeEquality, OperatorEqualsWorks) {
+    employee a = make(1, "X", 100.0);
+    employee b = make(1, "X", 100.0);
+    EXPECT_TRUE(a == b);
+}
+
+TEST(EmployeeEquality, OperatorNotEqualsWorks) {
+    employee a = make(1, "X", 100.0);
+    employee b = make(2, "Y", 200.0);
+    EXPECT_FALSE(a == b);
+}
+
+TEST(EmployeeBinaryIO, WriteAndReadViaStream) {
+    employee original = make(123, "StreamGuy", 42.42);
+    std::stringstream ss(std::ios::in | std::ios::out | std::ios::binary);
+    original.write(ss);
+    employee loaded;
+    loaded.read(ss);
+    EXPECT_EQ(original, loaded);
+}
+
+TEST(EmployeeBinaryIO, WriteProducesExactSize) {
+    employee e = make(1, "SizeTest", 1.0);
+    std::stringstream ss(std::ios::in | std::ios::out | std::ios::binary);
+    e.write(ss);
+    std::string buf = ss.str();
+    EXPECT_EQ(buf.size(), sizeof(employee));
+}
+
+TEST(EmployeeBinaryIO, ReadParsesRawBytesCorrectly) {
+    employee expected = make(7, "RawTest", 3.1);
+    std::stringstream ss(std::ios::in | std::ios::out | std::ios::binary);
+    ss.write(reinterpret_cast<const char*>(&expected), sizeof(employee));
+    ss.seekg(0);
+    employee actual;
+    actual.read(ss);
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(EmployeeReport, GeneratesCorrectFormattedReport) {
+    const std::string binFile = "test_report.bin";
+    const std::string txtFile = "test_report.txt";
+    const double rate = 100.0;
+
+    std::vector<employee> data = {
+        make(1, "Alice", 5.0),
+        make(2, "Bob", 8.0)
+    };
+
+    {
+        std::ofstream out(binFile, std::ios::binary);
+        for (const auto& e : data) {
+            out.write(reinterpret_cast<const char*>(&e), sizeof(employee));
+        }
     }
 
-    void TearDown() override {
-        remove(binFile.c_str());
-        remove(reportFile.c_str());
-    }
-};
+    employee::writeReport(binFile, txtFile, rate);
 
-TEST_F(FileIOTests, WriteAndReadBinaryFile) {
-    io::writeBinaryFile(binFile, sample);
-    auto result = io::readBinaryFile(binFile);
-    EXPECT_EQ(result, sample);
-}
+    std::ifstream in(txtFile);
+    ASSERT_TRUE(in.is_open());
 
-TEST_F(FileIOTests, ReadEmptyBinaryFileReturnsEmptyVector) {
-    ofstream ofs(binFile, ios::binary);
-    ofs.close();
-    auto result = io::readBinaryFile(binFile);
-    EXPECT_TRUE(result.empty());
-}
-
-TEST_F(FileIOTests, ReadNonexistentBinaryFileThrows) {
-    remove(binFile.c_str());
-    EXPECT_THROW(io::readBinaryFile(binFile), runtime_error);
-}
-
-TEST_F(FileIOTests, WriteReportGeneratesCorrectContent) {
-    io::writeBinaryFile(binFile, sample);
-    io::writeReport(binFile, reportFile, 5.0);
-
-    ifstream ifs(reportFile);
-    ASSERT_TRUE(ifs.is_open());
-
-    string line;
-    vector<string> lines;
-    while (getline(ifs, line)) {
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(in, line)) {
         lines.push_back(line);
     }
 
-    ASSERT_GE(lines.size(), 3);
-    EXPECT_EQ(lines[0], "Report based on file: " + binFile );
+    EXPECT_GE(lines.size(), 4);
+    EXPECT_EQ(lines[0], "Report based on file: " + binFile);
     EXPECT_EQ(lines[1], "Number\tName\tHours\tSalary");
-    EXPECT_NE(lines[2].find("Ivan"), string::npos);
-    EXPECT_NE(lines[3].find("Anna"), string::npos);
+
+    EXPECT_TRUE(lines[2].find("Alice") != std::string::npos);
+    EXPECT_TRUE(lines[2].find("500") != std::string::npos);
+    EXPECT_TRUE(lines[3].find("Bob") != std::string::npos);
+    EXPECT_TRUE(lines[3].find("800") != std::string::npos);
+
+    std::remove(binFile.c_str());
+    std::remove(txtFile.c_str());
+}
+
+TEST(EmployeeReport, HandlesEmptyBinaryFile) {
+    const std::string binFile = "empty.bin";
+    const std::string txtFile = "empty_report.txt";
+    const double rate = 50.0;
+
+    {
+        std::ofstream out(binFile, std::ios::binary);
+    }
+
+    EXPECT_NO_THROW(employee::writeReport(binFile, txtFile, rate));
+
+    std::ifstream in(txtFile);
+    ASSERT_TRUE(in.is_open());
+
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(in, line)) {
+        lines.push_back(line);
+    }
+
+    EXPECT_EQ(lines.size(), 2);
+    EXPECT_EQ(lines[0], "Report based on file: " + binFile);
+    EXPECT_EQ(lines[1], "Number\tName\tHours\tSalary");
+
+    std::remove(binFile.c_str());
+    std::remove(txtFile.c_str());
+}
+
+TEST(EmployeeReport, ThrowsOnMissingBinaryFile) {
+    const std::string binFile = "nonexistent.bin";
+    const std::string txtFile = "should_not_exist.txt";
+    const double rate = 75.0;
+
+    EXPECT_THROW(employee::writeReport(binFile, txtFile, rate), std::runtime_error);
 }

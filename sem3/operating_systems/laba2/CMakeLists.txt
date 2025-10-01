@@ -9,10 +9,10 @@ add_executable(lab2
     src/main.cpp
     src/thread_min_max.cpp
     src/thread_average.cpp
-    src/utils.cpp
+    common/utils.cpp
 )
 
-target_include_directories(lab2 PRIVATE src)
+target_include_directories(lab2 PRIVATE src common)
 
 # Google Test setup
 include(FetchContent)
@@ -29,12 +29,12 @@ add_executable(run_tests
     tests/test_min_max.cpp
     tests/test_replace.cpp
     tests/test_input.cpp
-    src/utils.cpp
+    common/utils.cpp
     src/thread_min_max.cpp
     src/thread_average.cpp
 )
 
-target_include_directories(run_tests PRIVATE src)
+target_include_directories(run_tests PRIVATE src common)
 target_link_libraries(run_tests gtest_main)
 
 include(GoogleTest)

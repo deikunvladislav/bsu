@@ -42,7 +42,7 @@ public class Phone extends AbstractEntity {
 
     @Override
     public String toString() {
-        return String.format("ID: %d | %s %s | Камер: %d | Дата: %s | Цена: %.2f",
+        return String.format("ID: %d | %s %s | Cameras: %d | Date: %s | Price: %.2f",
                 id, brand, model, cameraCount,
                 new SimpleDateFormat("yyyy-MM-dd").format(releaseDate), price);
     }

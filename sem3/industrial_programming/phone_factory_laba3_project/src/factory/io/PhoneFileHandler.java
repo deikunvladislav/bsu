@@ -28,8 +28,8 @@ public class PhoneFileHandler extends AbstractFileHandler<Phone> {
                 String line = linesIt.next();
                 String[] parts = line.split(";");
                 if (parts.length != 6) {
-                    logWriter.println("Ошибка: неверное количество полей -> " + line);
-                    System.err.println("Ошибка: неверное количество полей -> " + line);
+                    logWriter.println("Error: invalid field count -> " + line);
+                    System.err.println("Error: invalid field count -> " + line);
                     continue;
                 }
 
@@ -41,12 +41,12 @@ public class PhoneFileHandler extends AbstractFileHandler<Phone> {
                 String priceStr = parts[5].trim();
 
                 try {
-                    if (!ID_PATTERN.matcher(idStr).matches()) throw new IllegalArgumentException("Некорректный ID");
-                    if (!BRAND_PATTERN.matcher(brand).matches()) throw new IllegalArgumentException("Некорректный бренд");
-                    if (!MODEL_PATTERN.matcher(model).matches()) throw new IllegalArgumentException("Некорректная модель");
-                    if (!CAMERA_PATTERN.matcher(camerasStr).matches()) throw new IllegalArgumentException("Некорректное число камер");
-                    if (!DATE_PATTERN.matcher(dateStr).matches()) throw new IllegalArgumentException("Некорректная дата");
-                    if (!PRICE_PATTERN.matcher(priceStr).matches()) throw new IllegalArgumentException("Некорректная цена");
+                    if (!ID_PATTERN.matcher(idStr).matches()) throw new IllegalArgumentException("Invalid ID");
+                    if (!BRAND_PATTERN.matcher(brand).matches()) throw new IllegalArgumentException("Invalid brand");
+                    if (!MODEL_PATTERN.matcher(model).matches()) throw new IllegalArgumentException("Invalid model");
+                    if (!CAMERA_PATTERN.matcher(camerasStr).matches()) throw new IllegalArgumentException("Invalid camera count");
+                    if (!DATE_PATTERN.matcher(dateStr).matches()) throw new IllegalArgumentException("Invalid date");
+                    if (!PRICE_PATTERN.matcher(priceStr).matches()) throw new IllegalArgumentException("Invalid price");
 
                     int id = Integer.parseInt(idStr);
                     int cameras = Integer.parseInt(camerasStr);
@@ -56,8 +56,8 @@ public class PhoneFileHandler extends AbstractFileHandler<Phone> {
                     phones.add(new Phone(id, brand, model, cameras, date, price));
 
                 } catch (Exception e) {
-                    logWriter.println("Ошибка: " + e.getMessage() + " | строка: " + line);
-                    System.err.println("Ошибка: " + e.getMessage() + " | строка: " + line);
+                    logWriter.println("Error: " + e.getMessage() + " | line: " + line);
+                    System.err.println("Error: " + e.getMessage() + " | line: " + line);
                 }
             }
 

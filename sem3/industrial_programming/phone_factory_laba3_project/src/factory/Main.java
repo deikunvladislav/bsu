@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Выберите тип хранилища:");
+        System.out.println("Choose storage type:");
         System.out.println("1 - List based storage");
         System.out.println("2 - Map based storage");
         
@@ -27,18 +27,13 @@ public class Main {
         
         PhoneFileHandler fileHandler = new PhoneFileHandler();
 
-        loadDataFromFile(storage, fileHandler, "phones.txt");
-
-        Menu menu = new Menu(storage, fileHandler);
-        menu.show();
-    }
-    
-    private static void loadDataFromFile(AbstractStorage<Phone> storage, 
-                                       PhoneFileHandler fileHandler, 
-                                       String filename) {
-        java.util.List<Phone> phones = fileHandler.readFromFile(filename);
+        java.util.List<Phone> phones = fileHandler.readFromFile("phones.txt");
         for (Phone phone : phones) {
             storage.add(phone);
         }
+
+        Menu menu = new Menu(storage, fileHandler);
+        menu.show();
+        scanner.close();
     }
 }

@@ -3,11 +3,11 @@ package factory.storage;
 import factory.model.Phone;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class PhoneMapStorage extends AbstractStorage<Phone> {
-    private Map<Integer, Phone> phoneMap = new TreeMap<>();
+    private SortedMap<Integer, Phone> phoneMap = new TreeMap<>();
 
     @Override
     public void add(Phone phone) { 
@@ -42,7 +42,7 @@ public class PhoneMapStorage extends AbstractStorage<Phone> {
         return new ArrayList<>(phoneMap.values());
     }
     
-    public Map<Integer, Phone> getPhoneMap() { 
+    public SortedMap<Integer, Phone> getPhoneMap() { 
         return new TreeMap<>(phoneMap); 
     }
 }

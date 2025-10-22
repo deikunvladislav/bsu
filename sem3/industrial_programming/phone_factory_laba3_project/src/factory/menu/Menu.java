@@ -3,6 +3,7 @@ package factory.menu;
 import factory.io.PhoneFileHandler;
 import factory.model.Phone;
 import factory.storage.AbstractStorage;
+import factory.storage.PhoneMapStorage;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
@@ -22,15 +23,16 @@ public class Menu {
 
     public void show() {
         while (true) {
-            System.out.println("\n===== МЕНЮ =====");
-            System.out.println("1. Показать все телефоны");
-            System.out.println("2. Добавить телефон");
-            System.out.println("3. Удалить телефон");
-            System.out.println("4. Сохранить в файл");
-            System.out.println("5. Редактировать телефон");
-            System.out.println("6. Сортировать телефоны");
-            System.out.println("7. Выйти");
-            System.out.print("Выбор: ");
+            System.out.println("\n===== MENU =====");
+            System.out.println("1. Show all phones");
+            System.out.println("2. Add phone");
+            System.out.println("3. Delete phone");
+            System.out.println("4. Save to file");
+            System.out.println("5. Edit phone");
+            System.out.println("6. Sort phones");
+            System.out.println("7. Demonstrate SortedMap");
+            System.out.println("8. Exit");
+            System.out.print("Choice: ");
             int choice = scanner.nextInt();
             scanner.nextLine();
 
@@ -41,11 +43,12 @@ public class Menu {
                 case 4 -> fileHandler.writeToFile("report.txt", storage.getAll());
                 case 5 -> editPhone();
                 case 6 -> sortPhones();
-                case 7 -> {
-                    System.out.println("Выход из программы...");
+                case 7 -> demonstrateSortedMap();
+                case 8 -> {
+                    System.out.println("Exiting program...");
                     return;
                 }
-                default -> System.out.println("Неверный выбор!");
+                default -> System.out.println("Invalid choice!");
             }
         }
     }
@@ -55,43 +58,43 @@ public class Menu {
             System.out.print("ID: ");
             int id = scanner.nextInt();
             scanner.nextLine();
-            System.out.print("Бренд: ");
+            System.out.print("Brand: ");
             String brand = scanner.nextLine();
-            System.out.print("Модель: ");
+            System.out.print("Model: ");
             String model = scanner.nextLine();
-            System.out.print("Камер: ");
+            System.out.print("Cameras: ");
             int cameras = scanner.nextInt();
             scanner.nextLine();
-            System.out.print("Дата выпуска (yyyy-MM-dd): ");
+            System.out.print("Release date (yyyy-MM-dd): ");
             String dateStr = scanner.nextLine();
             Date date = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
-            System.out.print("Цена: ");
+            System.out.print("Price: ");
             double price = scanner.nextDouble();
 
             Phone phone = new Phone(id, brand, model, cameras, date, price);
             storage.add(phone);
-            System.out.println("Телефон успешно добавлен!");
+            System.out.println("Phone successfully added!");
         } catch (Exception e) {
-            System.err.println("Ошибка ввода данных! Попробуйте снова.");
+            System.err.println("Data input error! Try again.");
             scanner.nextLine();
         }
     }
 
     private void deletePhone() {
-        System.out.print("Введите ID для удаления: ");
+        System.out.print("Enter ID to delete: ");
         int id = scanner.nextInt();
         storage.delete(id);
-        System.out.println("Телефон с ID " + id + " удалён (если существовал).");
+        System.out.println("Phone with ID " + id + " deleted (if existed).");
     }
 
     private void sortPhones() {
-        System.out.println("Выберите поле для сортировки:");
-        System.out.println("1. По ID (Comparator) ");
-        System.out.println("2. По бренду (Collections + Comparator) ");
-        System.out.println("3. По модели (Collections + Лямбда выражение) ");
-        System.out.println("4. По числу камер (Comparator) ");
-        System.out.println("5. По дате выпуска (Лямбда выражение) ");
-        System.out.println("6. По цене (лямбда выражение) ");
+        System.out.println("Choose field for sorting:");
+        System.out.println("1. By ID (Comparator) ");
+        System.out.println("2. By brand (Collections + Comparator) ");
+        System.out.println("3. By model (Collections + Lambda) ");
+        System.out.println("4. By camera count (Comparator) ");
+        System.out.println("5. By release date (Lambda) ");
+        System.out.println("6. By price (Lambda) ");
 
         int choice = scanner.nextInt();
         scanner.nextLine();
@@ -105,63 +108,79 @@ public class Menu {
             case 5 -> list.sort((a, b) -> a.getReleaseDate().compareTo(b.getReleaseDate()));
             case 6 -> list.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
             default -> {
-                System.out.println("Неверный выбор!");
+                System.out.println("Invalid choice!");
                 return;
             }
         }
-        System.out.println("Телефоны отсортированы:");
+        System.out.println("Phones sorted:");
         for (Phone phone : list) {
             System.out.println(phone);
         }
     }
 
+    private void demonstrateSortedMap() {
+        if (storage instanceof PhoneMapStorage) {
+            PhoneMapStorage mapStorage = (PhoneMapStorage) storage;
+            var sortedMap = mapStorage.getPhoneMap();
+            System.out.println("=== SortedMap Demonstration ===");
+            System.out.println("Automatic sorting by key (ID):");
+            for (var entry : sortedMap.entrySet()) {
+                System.out.println("Key: " + entry.getKey() + " | Value: " + entry.getValue());
+            }
+            System.out.println("First key: " + sortedMap.firstKey());
+            System.out.println("Last key: " + sortedMap.lastKey());
+        } else {
+            System.out.println("SortedMap is only available with Map-based storage");
+        }
+    }
+
     private void editPhone() {
-        System.out.print("Введите ID телефона для редактирования: ");
+        System.out.print("Enter phone ID to edit: ");
         int id = scanner.nextInt();
         scanner.nextLine();
         Phone p = storage.findById(id);
         if (p == null) {
-            System.out.println("Телефон с ID " + id + " не найден.");
+            System.out.println("Phone with ID " + id + " not found.");
             return;
         }
     
-        System.out.println("Оставьте поле пустым, чтобы не менять значение.");
-        System.out.println("Текущий бренд: " + p.getBrand());
-        System.out.print("Новый бренд: ");
+        System.out.println("Leave field empty to keep current value.");
+        System.out.println("Current brand: " + p.getBrand());
+        System.out.print("New brand: ");
         String brand = scanner.nextLine().trim();
         if (!brand.isEmpty()) p.setBrand(brand);
     
-        System.out.println("Текущая модель: " + p.getModel());
-        System.out.print("Новая модель: ");
+        System.out.println("Current model: " + p.getModel());
+        System.out.print("New model: ");
         String model = scanner.nextLine().trim();
         if (!model.isEmpty()) p.setModel(model);
     
-        System.out.println("Текущее число камер: " + p.getCameraCount());
-        System.out.print("Новые камеры: ");
+        System.out.println("Current camera count: " + p.getCameraCount());
+        System.out.print("New camera count: ");
         String cams = scanner.nextLine().trim();
         if (!cams.isEmpty()) {
             try { p.setCameraCount(Integer.parseInt(cams)); }
-            catch (NumberFormatException e) { System.out.println("Неверный формат числа камер, значение не изменено."); }
+            catch (NumberFormatException e) { System.out.println("Invalid camera count format, value not changed."); }
         }
     
-        System.out.println("Текущая дата выпуска: " + new SimpleDateFormat("yyyy-MM-dd").format(p.getReleaseDate()));
-        System.out.print("Новая дата (yyyy-MM-dd): ");
+        System.out.println("Current release date: " + new SimpleDateFormat("yyyy-MM-dd").format(p.getReleaseDate()));
+        System.out.print("New date (yyyy-MM-dd): ");
         String dateStr = scanner.nextLine().trim();
         if (!dateStr.isEmpty()) {
             try { p.setReleaseDate(new SimpleDateFormat("yyyy-MM-dd").parse(dateStr)); }
-            catch (Exception e) { System.out.println("Неверный формат даты, значение не изменено."); }
+            catch (Exception e) { System.out.println("Invalid date format, value not changed."); }
         }
     
-        System.out.println("Текущая цена: " + p.getPrice());
-        System.out.print("Новая цена (формат 12345,67): ");
+        System.out.println("Current price: " + p.getPrice());
+        System.out.print("New price (format 12345.67): ");
         String priceStr = scanner.nextLine().trim();
         if (!priceStr.isEmpty()) {
             try { p.setPrice(Double.parseDouble(priceStr.replace(",", "."))); }
-            catch (NumberFormatException e) { System.out.println("Неверный формат цены, значение не изменено."); }
+            catch (NumberFormatException e) { System.out.println("Invalid price format, value not changed."); }
         }
     
         storage.update(id, p);
-        System.out.println("Запись обновлена:");
+        System.out.println("Record updated:");
         System.out.println(p);
     }
 }

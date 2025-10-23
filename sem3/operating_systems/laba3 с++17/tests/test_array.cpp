@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "core/shared_array.hpp"
+#include "shared_array.hpp"
 
 TEST(SharedArrayTest, Initialization) {
     SharedArray arr(5);

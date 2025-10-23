@@ -8,11 +8,11 @@
   "configurePresets": [
     {
       "name": "default",
-      "displayName": "Default Release (VS2022 x64)",
-      "description": "Release build with optimizations for Visual Studio 2022 x64",
+      "displayName": "Release build (VS2022 x64)",
+      "description": "Configure for Release build with Visual Studio 2022",
       "generator": "Visual Studio 17 2022",
       "architecture": "x64",
-      "binaryDir": "${sourceDir}/build/vs2022-default",
+      "binaryDir": "${sourceDir}/build/vs2022-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_STANDARD": "17",
@@ -22,8 +22,8 @@
     },
     {
       "name": "debug",
-      "displayName": "Debug Build (VS2022 x64)",
-      "description": "Debug build with debug symbols for Visual Studio 2022 x64",
+      "displayName": "Debug build (VS2022 x64)",
+      "description": "Configure for Debug build with Visual Studio 2022",
       "generator": "Visual Studio 17 2022",
       "architecture": "x64",
       "binaryDir": "${sourceDir}/build/vs2022-debug",

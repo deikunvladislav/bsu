@@ -80,7 +80,6 @@ int main() {
             }
 
             markers[static_cast<std::size_t>(toTerminateId - 1)]->signalTerminate();
-
             markers[static_cast<std::size_t>(toTerminateId - 1)]->join();
             alive[static_cast<std::size_t>(toTerminateId - 1)] = false;
             --aliveCount;
@@ -94,6 +93,13 @@ int main() {
         }
 
         std::cout << "All markers have finished.\n";
+
+        printState(arr, "Final array state (all zeros):");
+
+        std::cout << "Press Enter to exit...";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cin.get();
+
         return 0;
     }
     catch (const std::exception& ex) {

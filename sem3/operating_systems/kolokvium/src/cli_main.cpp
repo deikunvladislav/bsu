@@ -1,11 +1,18 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <limits>
 #include "factorial.hpp"
 #include "dedup.hpp"
 #include "singly_list.hpp"
 
 namespace {
+    constexpr const char* kPromptN = "Enter n (number of factorials to compute): ";
+    constexpr const char* kPromptDedup = "Enter integers for deduplication (space-separated): ";
+    constexpr const char* kPromptList = "Enter integers for linked list reversal (space-separated): ";
+    constexpr const char* kLabelDedup = "Deduplicated";
+    constexpr const char* kLabelRev = "Reversed";
+
     void print_factorials(const std::vector<app::math::BigInt>& facts) {
         for (size_t i = 0; i < facts.size(); ++i)
             std::cout << (i + 1) << "! = " << facts[i].to_string() << "\n";
@@ -21,31 +28,40 @@ namespace {
     std::vector<int> read_int_vector(const std::string& prompt) {
         std::cout << prompt;
         std::string line;
-        std::getline(std::cin, line);
+        if (!std::getline(std::cin, line)) {
+            throw app::InvalidArgumentError("Failed to read input line");
+        }
         std::istringstream iss(line);
         std::vector<int> v;
         int x;
         while (iss >> x) v.push_back(x);
         return v;
     }
+
+    bool read_size_t(size_t& out) {
+        if (!(std::cin >> out)) return false;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return true;
+    }
 }
 
 int main() {
     try {
-        std::cout << "Enter n (number of factorials to compute): ";
-        size_t n;
-        std::cin >> n;
-        std::cin.ignore();
+        std::cout << kPromptN;
+        size_t n{};
+        if (!read_size_t(n) || n == 0) {
+            throw app::InvalidArgumentError("n must be a positive integer");
+        }
         auto facts = app::math::first_n_factorials(n);
         print_factorials(facts);
 
-        auto dedup_input = read_int_vector("Enter integers for deduplication (space-separated): ");
-        print_vector(app::algo::stable_unique(dedup_input), "Dedup");
+        auto dedup_input = read_int_vector(kPromptDedup);
+        print_vector(app::algo::stable_unique(dedup_input), kLabelDedup);
 
-        auto list_input = read_int_vector("Enter integers for linked list reversal (space-separated): ");
+        auto list_input = read_int_vector(kPromptList);
         auto head = app::list::from_vector(list_input);
         auto rev = app::list::reverse_recursive<int>(std::move(head));
-        print_vector(app::list::to_vector(rev), "Reversed");
+        print_vector(app::list::to_vector(rev), kLabelRev);
     }
     catch (const app::AppError& e) {
         std::cerr << "Application error: " << e.what() << "\n";

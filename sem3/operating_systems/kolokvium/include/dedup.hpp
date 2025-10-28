@@ -9,7 +9,7 @@ namespace app::algo {
         std::unordered_set<T, Hasher, Eq> seen;
         std::vector<T> result;
         result.reserve(input.size());
-        for (auto& v : input) {
+        for (const auto& v : input) {
             if (seen.insert(v).second) result.push_back(v);
         }
         return result;

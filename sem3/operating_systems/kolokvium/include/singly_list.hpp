@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <utility>
 
 namespace app::list {
 
@@ -17,7 +18,7 @@ namespace app::list {
     template <typename T>
     NodePtr<T> from_vector(const std::vector<T>& v) {
         NodePtr<T> head = nullptr; Node<T>* tail = nullptr;
-        for (auto& x : v) {
+        for (const auto& x : v) {
             auto node = std::make_unique<Node<T>>(x);
             if (!head) { tail = node.get(); head = std::move(node); }
             else { tail->next = std::move(node); tail = tail->next.get(); }
@@ -35,7 +36,7 @@ namespace app::list {
     template <typename T>
     struct RevResult {
         NodePtr<T> head;
-        Node<T>* tail; 
+        Node<T>* tail;
     };
 
     template <typename T>

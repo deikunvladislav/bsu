@@ -9,4 +9,4 @@ namespace app {
     struct InvalidArgumentError : public AppError {
         explicit InvalidArgumentError(const std::string& msg) : AppError(msg) {}
     };
-} 
+}

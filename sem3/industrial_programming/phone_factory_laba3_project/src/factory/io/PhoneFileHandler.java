@@ -1,20 +1,11 @@
 package factory.io;
 
 import factory.model.Phone;
+import factory.validation.PhoneValidator;
 import java.io.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class PhoneFileHandler extends AbstractFileHandler<Phone> {
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-    private static final Pattern ID_PATTERN = Pattern.compile("^[0-9]+$");
-    private static final Pattern BRAND_PATTERN = Pattern.compile("^[A-Za-zА-Яа-я ]+$");
-    private static final Pattern MODEL_PATTERN = Pattern.compile("^[A-Za-zА-Яа-я0-9 ]+$");
-    private static final Pattern CAMERA_PATTERN = Pattern.compile("^[0-7]{1}$");
-    private static final Pattern DATE_PATTERN = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}$");
-    private static final Pattern PRICE_PATTERN = Pattern.compile("^\\d{1,5},\\d{2}$");
 
     @Override
     public List<Phone> readFromFile(String filename) {
@@ -41,17 +32,17 @@ public class PhoneFileHandler extends AbstractFileHandler<Phone> {
                 String priceStr = parts[5].trim();
 
                 try {
-                    if (!ID_PATTERN.matcher(idStr).matches()) throw new IllegalArgumentException("Invalid ID");
-                    if (!BRAND_PATTERN.matcher(brand).matches()) throw new IllegalArgumentException("Invalid brand");
-                    if (!MODEL_PATTERN.matcher(model).matches()) throw new IllegalArgumentException("Invalid model");
-                    if (!CAMERA_PATTERN.matcher(camerasStr).matches()) throw new IllegalArgumentException("Invalid camera count");
-                    if (!DATE_PATTERN.matcher(dateStr).matches()) throw new IllegalArgumentException("Invalid date");
-                    if (!PRICE_PATTERN.matcher(priceStr).matches()) throw new IllegalArgumentException("Invalid price");
+                    if (!PhoneValidator.isValidId(idStr)) throw new IllegalArgumentException("Invalid ID");
+                    if (!PhoneValidator.isValidBrand(brand)) throw new IllegalArgumentException("Invalid brand");
+                    if (!PhoneValidator.isValidModel(model)) throw new IllegalArgumentException("Invalid model");
+                    if (!PhoneValidator.isValidCameraCount(camerasStr)) throw new IllegalArgumentException("Invalid camera count");
+                    if (!PhoneValidator.isValidDate(dateStr)) throw new IllegalArgumentException("Invalid date");
+                    if (!PhoneValidator.isValidPrice(priceStr)) throw new IllegalArgumentException("Invalid price");
 
                     int id = Integer.parseInt(idStr);
                     int cameras = Integer.parseInt(camerasStr);
-                    Date date = sdf.parse(dateStr);
-                    double price = Double.parseDouble(priceStr.replace(",", "."));
+                    Date date = PhoneValidator.parseDate(dateStr);
+                    double price = PhoneValidator.parsePrice(priceStr);
 
                     phones.add(new Phone(id, brand, model, cameras, date, price));
 
@@ -62,7 +53,7 @@ public class PhoneFileHandler extends AbstractFileHandler<Phone> {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error reading file: " + filename + " - " + e.getMessage());
         }
 
         return phones;
@@ -76,10 +67,11 @@ public class PhoneFileHandler extends AbstractFileHandler<Phone> {
                 Phone p = it.next();
                 pw.printf("%d;%s;%s;%d;%s;%.2f%n",
                         p.getId(), p.getBrand(), p.getModel(),
-                        p.getCameraCount(), sdf.format(p.getReleaseDate()), p.getPrice());
+                        p.getCameraCount(), PhoneValidator.formatDate(p.getReleaseDate()), p.getPrice());
             }
+            System.out.println("Data successfully saved to " + filename);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error writing to file: " + filename + " - " + e.getMessage());
         }
     }
 }

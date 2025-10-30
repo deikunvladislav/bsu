@@ -1,5 +1,8 @@
 # === исключаем все .txt кроме CMakeLists.txt ===
 *.txt
+*.json
+*.xml
+!CMakePresets.json
 !CMakeLists.txt
 
 # === исключаем Visual Studio артефакты ===

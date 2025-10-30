@@ -10,13 +10,13 @@ int main() {
         SharedData data;
         readInput(data.numbers);
 
-        data.hMinMaxThread = CreateThread(nullptr, 0, findMinMax, &data, 0, nullptr);
-        if (data.hMinMaxThread == nullptr) {
+        data.hMinMaxThread = CreateThread(NULL, 0, findMinMax, &data, 0, NULL);
+        if (data.hMinMaxThread == NULL) {
             throw std::runtime_error("Failed to create min_max thread");
         }
 
-        data.hAverageThread = CreateThread(nullptr, 0, calculateAverage, &data, 0, nullptr);
-        if (data.hAverageThread == nullptr) {
+        data.hAverageThread = CreateThread(NULL, 0, calculateAverage, &data, 0, NULL);
+        if (data.hAverageThread == NULL) {
             CloseHandle(data.hMinMaxThread);
             throw std::runtime_error("Failed to create average thread");
         }

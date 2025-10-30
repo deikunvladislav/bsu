@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <iostream>
 #include <limits>
+#include <stdexcept>
 
 void readInput(std::vector<int>& numbers) {
     std::cout << "Enter array size: ";
@@ -13,8 +14,8 @@ void readInput(std::vector<int>& numbers) {
 
     numbers.resize(size);
     std::cout << "Enter " << size << " integers:\n";
-    for (int& num : numbers) {
-        std::cin >> num;
+    for (int i = 0; i < size; ++i) {
+        std::cin >> numbers[i];
         if (std::cin.fail()) {
             throw std::invalid_argument("Invalid input");
         }
@@ -22,17 +23,17 @@ void readInput(std::vector<int>& numbers) {
 }
 
 void replaceMinMaxWithAverage(SharedData& data) {
-    for (int& num : data.numbers) {
-        if (num == data.minValue || num == data.maxValue) {
-            num = static_cast<int>(data.averageValue);
+    for (size_t i = 0; i < data.numbers.size(); ++i) {
+        if (data.numbers[i] == data.minValue || data.numbers[i] == data.maxValue) {
+            data.numbers[i] = static_cast<int>(data.averageValue);
         }
     }
 }
 
 void printArray(const std::vector<int>& numbers) {
     std::cout << "Modified array: ";
-    for (int num : numbers) {
-        std::cout << num << " ";
+    for (size_t i = 0; i < numbers.size(); ++i) {
+        std::cout << numbers[i] << " ";
     }
     std::cout << "\n";
 }

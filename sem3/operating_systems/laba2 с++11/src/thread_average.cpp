@@ -7,8 +7,8 @@ DWORD WINAPI calculateAverage(LPVOID lpParam) {
     if (!data || data->numbers.empty()) return 1;
 
     long long sum = 0;
-    for (int num : data->numbers) {
-        sum += num;
+    for (size_t i = 0; i < data->numbers.size(); ++i) {
+        sum += data->numbers[i];
         Sleep(12);
     }
 

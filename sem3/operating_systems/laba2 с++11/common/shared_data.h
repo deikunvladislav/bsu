@@ -3,6 +3,14 @@
 #include <vector>
 #include <windows.h>
 
+/*
+ * SharedData is used to pass information between threads.
+ * It contains both computational results and thread handles.
+ * Note: In unit tests, only a subset of these fields is used.
+ * The thread-related members (HANDLEs) are included for consistency
+ * with the multithreaded execution in the main application.
+ */
+
 struct SharedData {
     std::vector<int> numbers;
     int minValue;

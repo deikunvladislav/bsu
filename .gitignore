@@ -1,11 +1,11 @@
-# === исключаем все .txt кроме CMakeLists.txt ===
+# === exclude all .txt except CMakeLists.txt ===
 *.txt
 *.json
 *.xml
 !CMakePresets.json
 !CMakeLists.txt
 
-# === исключаем Visual Studio артефакты ===
+# === exclude Visual Studio artifacts ===
 *.vcxproj
 *.vcxproj.user
 *.sln
@@ -13,7 +13,7 @@
 *.user
 .vs/
 
-# === исключаем CMake build артефакты ===
+# === exclude CMake build artifacts ===
 build/
 out/
 x64/
@@ -23,7 +23,7 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
-# === исключаем бинарники и временные файлы ===
+# === exclude binaries and temporary files ===
 *.dat
 *.exe
 *.obj
@@ -32,20 +32,21 @@ Makefile
 *.dll
 *.log
 
-# === исключаем JetBrains / CLion / IntelliJ ===
+# === exclude JetBrains / CLion / IntelliJ ===
 .idea/
 *.iml
 
-# === исключаем Python кэш ===
+# === exclude Python cache ===
 __pycache__/
 *.pyc
 
-# === исключаем Java build артефакты ===
+# === exclude Java build artifacts ===
 *.class
 *.jar
 
-# === исключаем сторонние библиотеки ===
+# === exclude third-party libraries ===
 lib/
 libs/
 external/
 vendor/
+boost/

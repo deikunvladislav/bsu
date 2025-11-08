@@ -3,13 +3,14 @@
 #include "marker.hpp"
 #include <windows.h>
 #include <iostream>
+#include <boost/make_shared.hpp>
 
 int main() {
     SharedArray arr(10);
     HANDLE startEvent = CreateEventA(NULL, TRUE, FALSE, NULL);
 
-    Marker* m1 = new Marker(1, arr, startEvent);
-    Marker* m2 = new Marker(2, arr, startEvent);
+    Marker::Ptr m1 = boost::make_shared<Marker>(1, arr, startEvent);
+    Marker::Ptr m2 = boost::make_shared<Marker>(2, arr, startEvent);
 
     m1->start();
     m2->start();
@@ -35,8 +36,6 @@ int main() {
         }
     }
 
-    delete m1;
-    delete m2;
     CloseHandle(startEvent);
 
     if (ok) {

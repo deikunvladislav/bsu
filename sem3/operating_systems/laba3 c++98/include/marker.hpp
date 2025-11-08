@@ -4,9 +4,12 @@
 #include <windows.h>
 #include <cstddef>
 #include <string>
+#include <boost/shared_ptr.hpp>
 
 class Marker {
 public:
+    typedef boost::shared_ptr<Marker> Ptr;
+
     Marker(int id, SharedArray& arr, HANDLE startEvent);
     ~Marker();
 
@@ -20,10 +23,10 @@ public:
     std::size_t markedCount() const { return markedCount_; }
     std::size_t lastConflictIndex() const { return lastConflictIndex_; }
 
+private:
     Marker(const Marker&);
     Marker& operator=(const Marker&);
 
-private:
     static DWORD WINAPI ThreadProcStatic(LPVOID param);
     DWORD run();
     void notifyBlocked();

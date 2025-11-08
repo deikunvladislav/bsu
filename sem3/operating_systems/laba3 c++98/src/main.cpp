@@ -8,6 +8,7 @@
 #include <vector>
 #include <limits>
 #include <sstream>
+#include <boost/make_shared.hpp>
 
 namespace {
     int readPositiveInt(const std::string& prompt) {
@@ -51,18 +52,16 @@ int main() {
             return 1;
         }
 
-        std::vector<Marker*> markers;
+        std::vector<Marker::Ptr> markers;
         markers.reserve(markersCount);
 
         for (int id = 1; id <= markersCount; ++id) {
-            Marker* m = new Marker(id, arr, startEvent);
+            Marker::Ptr m = boost::make_shared<Marker>(id, arr, startEvent);
             if (!m->start()) {
                 std::cerr << "Failed to start marker " << id << ".\n";
-                delete m;
                 for (size_t j = 0; j < markers.size(); ++j) {
                     markers[j]->signalTerminate();
                     markers[j]->join();
-                    delete markers[j];
                 }
                 CloseHandle(startEvent);
                 return 1;
@@ -108,11 +107,6 @@ int main() {
         }
 
         std::cout << "All markers have finished.\n";
-
-        for (size_t i = 0; i < markers.size(); ++i) {
-            delete markers[i];
-        }
-        markers.clear();
 
         if (startEvent != NULL) {
             CloseHandle(startEvent);

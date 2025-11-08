@@ -110,6 +110,8 @@ void Marker::notifyBlocked() {
     SetEvent(blockedEvent_);
 }
 
+// Waits for either termination or continuation signal.
+// Returns true if continuation is requested, false if termination.
 bool Marker::waitForContinueOrTerminate() {
     HANDLE events[2];
     events[0] = terminateEvent_;

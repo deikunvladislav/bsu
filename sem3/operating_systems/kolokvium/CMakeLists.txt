@@ -44,6 +44,7 @@ add_executable(unit_tests
     tests/test_factorial.cpp
     tests/test_dedup.cpp
     tests/test_list.cpp
+    tests/test_cli.cpp 
 )
 target_link_libraries(unit_tests PRIVATE
     factorial dedup list

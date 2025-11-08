@@ -31,3 +31,19 @@ TEST(Factorial, MulZeroKeepsZero) {
     z.mul(0);
     EXPECT_EQ(z.to_string(), "0");
 }
+
+TEST(Factorial, TooManyFactorials) {
+    EXPECT_THROW(app::math::first_n_factorials(app::math::MAX_FACTORIALS + 1),
+        app::InvalidArgumentError);
+}
+
+TEST(Factorial, AtLimit) {
+    auto v = app::math::first_n_factorials(app::math::MAX_FACTORIALS);
+    ASSERT_EQ(v.size(), app::math::MAX_FACTORIALS);
+    EXPECT_EQ(v[0].to_string(), "1");
+}
+
+TEST(Factorial, JustBelowLimit) {
+    auto v = app::math::first_n_factorials(app::math::MAX_FACTORIALS - 1);
+    ASSERT_EQ(v.size(), app::math::MAX_FACTORIALS - 1);
+}

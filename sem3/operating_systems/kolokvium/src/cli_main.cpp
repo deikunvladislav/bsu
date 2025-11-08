@@ -52,6 +52,12 @@ int main() {
         if (!read_size_t(n) || n == 0) {
             throw app::InvalidArgumentError("n must be a positive integer");
         }
+        if (n > app::math::MAX_FACTORIALS) {
+            std::cerr << "Maximum allowed factorials is "
+                << app::math::MAX_FACTORIALS << ".\n";
+            throw app::InvalidArgumentError("Requested factorial count exceeds safe limit");
+        }
+
         auto facts = app::math::first_n_factorials(n);
         print_factorials(facts);
 

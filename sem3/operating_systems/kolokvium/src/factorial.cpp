@@ -36,7 +36,12 @@ namespace app::math {
     }
 
     std::vector<BigInt> first_n_factorials(std::size_t n) {
-        if (n == 0) throw InvalidArgumentError("Argument n must be greater than 0");
+        if (n == 0)
+            throw InvalidArgumentError("Argument n must be greater than 0");
+        if (n > MAX_FACTORIALS) {
+            throw InvalidArgumentError("Too many factorials requested: exceeds safe memory limit");
+        }
+
         std::vector<BigInt> out;
         out.reserve(n);
         BigInt cur(1);

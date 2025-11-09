@@ -37,3 +37,35 @@ target_include_directories(test_marker PRIVATE
     ${CMAKE_SOURCE_DIR}/boost
 )
 add_test(NAME test_marker COMMAND $<TARGET_FILE:test_marker>)
+
+set(TEST_TARGETS test_array test_sync test_marker)
+
+set(GENERATED_TESTS_HEADER "${CMAKE_BINARY_DIR}/generated_tests_$<CONFIG>.h")
+
+set(GENERATED_CONTENT "static const char* kGeneratedTests[] = {\n")
+foreach(t IN LISTS TEST_TARGETS)
+    list(APPEND GENERATED_ENTRIES "    \"$<TARGET_FILE:${t}>\",\n")
+endforeach()
+foreach(entry IN LISTS GENERATED_ENTRIES)
+    set(GENERATED_CONTENT "${GENERATED_CONTENT}${entry}")
+endforeach()
+set(GENERATED_CONTENT "${GENERATED_CONTENT}};\nstatic const int kGeneratedTestsCount = sizeof(kGeneratedTests)/sizeof(kGeneratedTests[0]);\n")
+
+file(GENERATE OUTPUT "${GENERATED_TESTS_HEADER}" CONTENT "${GENERATED_CONTENT}")
+
+add_executable(test_runner tests/runner.cpp)
+target_include_directories(test_runner PRIVATE ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/include)
+if (MSVC)
+    target_compile_definitions(test_runner PRIVATE NOMINMAX)
+endif()
+
+add_dependencies(test_runner ${TEST_TARGETS})
+
+set(GENERATED_TEST_COMMON "${CMAKE_BINARY_DIR}/generated_tests.h")
+add_custom_command(TARGET test_runner PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_BINARY_DIR}/generated_tests_$<CONFIG>.h"
+        "${GENERATED_TEST_COMMON}"
+)
+
+add_test(NAME run_all_tests COMMAND $<TARGET_FILE:test_runner>)

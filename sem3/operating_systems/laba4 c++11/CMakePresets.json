@@ -8,6 +8,7 @@
   "configurePresets": [
     {
       "name": "default",
+      "hidden": false,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/default",
       "cacheVariables": {
@@ -27,8 +28,8 @@
     {
       "name": "default",
       "configurePreset": "default",
-      "execution": {
-        "noTestsAction": "error"
+      "output": {
+        "outputOnFailure": true
       }
     }
   ]

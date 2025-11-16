@@ -6,14 +6,21 @@ import factory.storage.AbstractStorage;
 import factory.storage.PhoneMapStorage;
 import factory.validation.PhoneValidator;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class Menu {
     private Scanner scanner = new Scanner(System.in);
@@ -41,7 +48,9 @@ public class Menu {
             System.out.println("6. Demonstrate SortedMap");
             System.out.println("7. Save data (current format)");
             System.out.println("8. Change file format");
-            System.out.println("9. Exit");
+            System.out.println("9. Encrypt data");
+            System.out.println("10. Create archive");
+            System.out.println("11. Exit");
             System.out.print("Choice: ");
             
             try {
@@ -57,7 +66,9 @@ public class Menu {
                     case 6 -> demonstrateSortedMap();
                     case 7 -> saveCurrentFormat();
                     case 8 -> changeFileFormat();
-                    case 9 -> {
+                    case 9 -> encryptData();
+                    case 10 -> createArchive();
+                    case 11 -> {
                         System.out.println("Exiting program...");
                         return;
                     }
@@ -335,5 +346,229 @@ public class Menu {
             default:
                 System.out.println("Invalid choice, format unchanged");
         }
+    }
+
+    private void encryptData() {
+        System.out.println("\n--- ENCRYPT DATA ---");
+        System.out.println("1. Encrypt phone data");
+        System.out.println("2. Decrypt phone data and load to storage");
+        System.out.print("Choice: ");
+        
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        
+        switch (choice) {
+            case 1 -> encryptPhoneData();
+            case 2 -> decryptAndLoadPhoneData();
+            default -> System.out.println("Invalid choice!");
+        }
+    }
+    
+    private void encryptPhoneData() {
+        try {
+            List<Phone> phones = storage.getAll();
+        
+            JSONArray jsonArray = new JSONArray();
+        
+            for (Phone phone : phones) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("id", phone.getId());
+                jsonObject.put("brand", phone.getBrand());
+                jsonObject.put("model", phone.getModel());
+                jsonObject.put("cameraCount", phone.getCameraCount());
+                jsonObject.put("releaseDate", PhoneValidator.formatDate(phone.getReleaseDate()));
+                jsonObject.put("price", phone.getPrice());
+                jsonArray.put(jsonObject);
+            }
+        
+            String dataToEncrypt = jsonArray.toString();
+        
+            String encryptedData = factory.io.EncryptionUtil.encrypt(dataToEncrypt);
+        
+            try (PrintWriter writer = new PrintWriter("encrypted_data.txt")) {
+                writer.print(encryptedData);
+            }
+        
+            System.out.println("Data encrypted and saved to encrypted_data.txt");
+            System.out.println("Encrypted " + phones.size() + " phones");
+        
+        } catch (Exception e) {
+            System.err.println("Error encrypting data: " + e.getMessage());
+            e.printStackTrace(); 
+    }
+}
+
+    private void decryptAndLoadPhoneData() {
+        try {
+            StringBuilder encryptedData = new StringBuilder();
+            File encryptedFile = new File("encrypted_data.txt");
+            if (!encryptedFile.exists()) {
+                System.out.println("Encrypted file not found: encrypted_data.txt");
+                return;
+            }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(encryptedFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                encryptedData.append(line);
+            }
+        }
+        
+        String decryptedData = factory.io.EncryptionUtil.decrypt(encryptedData.toString());
+        System.out.println("Data decrypted successfully!");
+        
+        JSONArray jsonArray = new JSONArray(decryptedData);
+        List<Phone> decryptedPhones = new ArrayList<>();
+        
+        for (int i = 0; i < jsonArray.length(); i++) {
+            try {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                int id = jsonObject.getInt("id");
+                String brand = jsonObject.getString("brand");
+                String model = jsonObject.getString("model");
+                int cameraCount = jsonObject.getInt("cameraCount");
+                String dateStr = jsonObject.getString("releaseDate");
+                double price = jsonObject.getDouble("price");
+                
+                java.util.Date releaseDate = PhoneValidator.parseDate(dateStr);
+                Phone phone = new Phone(id, brand, model, cameraCount, releaseDate, price);
+                decryptedPhones.add(phone);
+                
+            } catch (Exception e) {
+                System.err.println("Error parsing phone data at index " + i + ": " + e.getMessage());
+            }
+        }
+        
+        System.out.println("Parsed " + decryptedPhones.size() + " phones from encrypted data");
+        
+        System.out.println("\nChoose loading option:");
+        System.out.println("1. Replace current storage with decrypted data");
+        System.out.println("2. Add decrypted data to current storage (skip duplicates)");
+        System.out.println("3. Just show decrypted data without loading");
+        System.out.print("Choice: ");
+        
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        
+        switch (choice) {
+            case 1:
+                clearStorage();
+                for (Phone phone : decryptedPhones) {
+                    storage.add(phone);
+                }
+                System.out.println("Storage replaced with " + decryptedPhones.size() + " decrypted phones");
+                break;
+            case 2:
+                int addedCount = 0;
+                int skippedCount = 0;
+                for (Phone phone : decryptedPhones) {
+                    if (storage.findById(phone.getId()) == null) {
+                        storage.add(phone);
+                        addedCount++;
+                    } else {
+                        skippedCount++;
+                    }
+                }
+                System.out.println("Added " + addedCount + " phones, skipped " + skippedCount + " duplicates");
+                break;
+            case 3:
+                System.out.println("\n--- DECRYPTED PHONES ---");
+                for (Phone phone : decryptedPhones) {
+                    System.out.println(phone);
+                }
+                break;
+            default:
+                System.out.println("Invalid choice, data not loaded");
+            }
+        } catch (Exception e) {
+            System.err.println("Error decrypting and loading data: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void clearStorage() {
+        List<Phone> currentPhones = storage.getAll();
+        for (Phone phone : currentPhones) {
+            storage.delete(phone.getId());
+        }
+    }
+    
+    private void createArchive() {
+        System.out.println("\n--- CREATE ARCHIVE ---");
+        System.out.println("1. Create ZIP archive");
+        System.out.println("2. Create JAR archive");
+        System.out.print("Choice: ");
+        
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        
+        switch (choice) {
+            case 1 -> createZipArchive();
+            case 2 -> createJarArchive();
+            default -> System.out.println("Invalid choice!");
+        }
+    }
+    
+    private void createZipArchive() {
+        System.out.print("Enter archive name (without extension): ");
+        String archiveName = scanner.nextLine();
+        
+        String[] filesToArchive = {
+            "phones.txt", "phones.xml", "phones.json",
+            "report.txt", "report.xml", "report.json",
+            "errors.log", "encrypted_data.txt"
+        };
+        
+        List<String> existingFiles = new ArrayList<>();
+        for (String file : filesToArchive) {
+            File fileObj = new File(file);
+            if (fileObj.exists()) {
+                existingFiles.add(file);
+                System.out.println("Found: " + file);
+            }
+        }
+        
+        if (existingFiles.isEmpty()) {
+            System.out.println("No files found to archive!");
+            return;
+        }
+        
+        System.out.println("Creating archive with " + existingFiles.size() + " files...");
+        
+        factory.io.ArchiveUtil.createZipArchiveFromFiles(
+            existingFiles.toArray(new String[0]), 
+            archiveName + ".zip"
+        );
+    }
+    
+    private void createJarArchive() {
+        System.out.print("Enter JAR name (without extension): ");
+        String jarName = scanner.nextLine();
+        
+        String[] filesToInclude = {
+            "phones.txt", "phones.xml", "phones.json",
+            "report.txt", "report.xml", "report.json"
+        };
+        
+        List<String> existingFiles = new ArrayList<>();
+        for (String file : filesToInclude) {
+            File fileObj = new File(file);
+            if (fileObj.exists()) {
+                existingFiles.add(file);
+                System.out.println("Found: " + file);
+            }
+        }
+        
+        if (existingFiles.isEmpty()) {
+            System.out.println("No files found to archive!");
+            return;
+        }
+        
+        System.out.println("Creating JAR with " + existingFiles.size() + " files...");
+        
+        factory.io.ArchiveUtil.createJarArchive(
+            existingFiles.toArray(new String[0]), 
+            jarName + ".jar"
+        );
     }
 }

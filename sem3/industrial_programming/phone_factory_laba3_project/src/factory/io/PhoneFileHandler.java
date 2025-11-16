@@ -12,7 +12,7 @@ public class PhoneFileHandler extends AbstractFileHandler<Phone> {
         List<Phone> phones = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(filename));
-             PrintWriter logWriter = new PrintWriter(new FileWriter("errors.log", true))) {
+            PrintWriter logWriter = new PrintWriter(new FileWriter("errors.log", true))) {
 
             Iterator<String> linesIt = br.lines().iterator();
             while (linesIt.hasNext()) {

@@ -2,6 +2,7 @@
 *.txt
 *.json
 *.xml
+*.zip
 !CMakePresets.json
 !CMakeLists.txt
 

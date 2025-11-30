@@ -1,8 +1,10 @@
-# === exclude all .txt except CMakeLists.txt ===
+# === exclude all files except CMakeLists.txt & CMakePresets.json ===
 *.txt
 *.json
 *.xml
 *.zip
+*.gz
+*.bat
 !CMakePresets.json
 !CMakeLists.txt
 

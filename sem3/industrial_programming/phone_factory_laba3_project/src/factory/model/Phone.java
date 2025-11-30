@@ -2,8 +2,11 @@ package factory.model;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.io.Serializable;
 
-public class Phone extends AbstractEntity {
+public class Phone extends AbstractEntity implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private int id;
     private String brand;
     private String model;
@@ -18,6 +21,10 @@ public class Phone extends AbstractEntity {
         this.cameraCount = cameraCount;
         this.releaseDate = releaseDate;
         this.price = price;
+    }
+
+    public static PhoneBuilder builder() {
+        return new PhoneBuilder();
     }
 
     @Override

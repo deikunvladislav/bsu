@@ -50,7 +50,9 @@ public class Menu {
             System.out.println("8. Change file format");
             System.out.println("9. Encrypt data");
             System.out.println("10. Create archive");
-            System.out.println("11. Exit");
+            System.out.println("11. Demonstrate Decorator Pattern");
+            System.out.println("12. Demonstrate Builder Pattern");
+            System.out.println("13. Exit");
             System.out.print("Choice: ");
             
             try {
@@ -68,7 +70,9 @@ public class Menu {
                     case 8 -> changeFileFormat();
                     case 9 -> encryptData();
                     case 10 -> createArchive();
-                    case 11 -> {
+                    case 11 -> demonstrateDecoratorPattern();
+                    case 12 -> demonstrateBuilderPattern();
+                    case 13 -> {
                         System.out.println("Exiting program...");
                         return;
                     }
@@ -570,5 +574,82 @@ public class Menu {
             existingFiles.toArray(new String[0]), 
             jarName + ".jar"
         );
+    }
+
+    private void demonstrateDecoratorPattern() {
+        System.out.println("\n--- DEMONSTRATE DECORATOR PATTERN ---");
+        System.out.println("1. Basic writer");
+        System.out.println("2. Writer with compression");
+        System.out.println("3. Writer with encryption");
+        System.out.println("4. Writer with compression and encryption");
+        System.out.print("Choice: ");
+        
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        
+        DataWriter writer = new SimpleDataWriter();
+        
+        switch (choice) {
+            case 1:
+                break;
+            case 2:
+                writer = new CompressionDataWriterDecorator(writer);
+                break;
+            case 3:
+                writer = new EncryptionDataWriterDecorator(writer);
+                break;
+            case 4:
+                writer = new CompressionDataWriterDecorator(new EncryptionDataWriterDecorator(writer));
+                break;
+            default:
+                System.out.println("Invalid choice!");
+                return;
+        }
+        
+        writer.write("decorator_demo.txt", storage.getAll());
+        System.out.println("File written with selected decorators!");
+    }
+
+    private void demonstrateBuilderPattern() {
+        System.out.println("\n--- DEMONSTRATE BUILDER PATTERN ---");
+        System.out.println("Building phone using Builder Pattern...");
+        
+        try {
+            System.out.print("Enter ID: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
+            
+            System.out.print("Enter brand: ");
+            String brand = scanner.nextLine();
+            
+            System.out.print("Enter model: ");
+            String model = scanner.nextLine();
+            
+            int cameras = readValidatedInput("Enter camera count (0-7): ", 
+                PhoneValidator::isValidCameraCount, "Error: Camera count must be between 0 and 7!", Integer::parseInt);
+            
+            String dateStr = readValidatedInput("Enter release date (yyyy-MM-dd): ", 
+                PhoneValidator::isValidDate, "Error: Date must be in format yyyy-MM-dd!", s -> s);
+            var date = PhoneValidator.parseDate(dateStr);
+            
+            String priceStr = readValidatedInput("Enter price: ", 
+                PhoneValidator::isValidPrice, "Error: Price format is invalid!", s -> s);
+            double price = PhoneValidator.parsePrice(priceStr);
+
+            Phone phone = Phone.builder()
+                    .setId(id)
+                    .setBrand(brand)
+                    .setModel(model)
+                    .setCameraCount(cameras)
+                    .setReleaseDate(date)
+                    .setPrice(price)
+                    .build();
+            
+            storage.add(phone);
+            System.out.println("Phone successfully built and added to storage: " + phone);
+            
+        } catch (Exception e) {
+            System.err.println("Error building phone: " + e.getMessage());
+        }
     }
 }

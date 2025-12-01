@@ -29,7 +29,10 @@
   "testPresets": [
     {
       "name": "default",
-      "configurePreset": "default"
+      "configurePreset": "default",
+      "execution": {
+        "jobs": 1
+      }
     }
   ]
 }

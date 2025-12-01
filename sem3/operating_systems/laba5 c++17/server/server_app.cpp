@@ -207,14 +207,27 @@ namespace {
 int run_server() {
     try {
         std::cout << "=== Server ===\n";
-        std::cout << prompt_file();
+        std::cout << "Enter binary file name: ";
         std::string path;
         std::cin >> path;
 
         FileStorage storage(path);
-        const auto init = read_initial_employees();
+        const auto init = std::vector<Employee>([&] {
+            const int32_t n = Console::prompt_int("Enter number of records: ");
+            std::vector<Employee> v;
+            v.reserve(static_cast<std::size_t>(n));
+            for (int32_t i = 0; i < n; ++i) {
+                std::cout << "Record #" << (i + 1) << '\n';
+                v.push_back(Console::prompt_employee());
+            }
+            return v;
+            }());
         storage.create_with_employees(init);
-        print_file(storage);
+        {
+            const auto all = storage.read_all();
+            std::cout << "File contents:\n";
+            FileStorage::print_to_console(all, std::cout);
+        }
 
         max_clients = Console::prompt_int("Enter number of client processes: ");
         if (max_clients < 1 || max_clients > static_cast<int32_t>(Proto::MAX_CLIENTS)) {
@@ -243,7 +256,10 @@ int run_server() {
             if (session_active.load() && active_clients.load() == 0) {
                 std::cout << "\n=== All clients disconnected ===\n";
                 std::cout << "Modified file:\n";
-                print_file(storage);
+                {
+                    const auto all = storage.read_all();
+                    FileStorage::print_to_console(all, std::cout);
+                }
                 std::cout << "\nType 'quit' to terminate server: ";
                 std::string cmd;
                 std::cin >> cmd;

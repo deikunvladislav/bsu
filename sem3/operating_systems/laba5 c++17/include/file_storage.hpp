@@ -99,4 +99,4 @@ private:
     std::string path_;
 };
 
-#endif 
+#endif

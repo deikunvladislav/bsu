@@ -5,6 +5,7 @@
 *.zip
 *.gz
 *.bat
+*.enc
 !CMakePresets.json
 !CMakeLists.txt
 

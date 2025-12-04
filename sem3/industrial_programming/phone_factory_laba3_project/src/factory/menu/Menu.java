@@ -579,9 +579,7 @@ public class Menu {
     private void demonstrateDecoratorPattern() {
         System.out.println("\n--- DEMONSTRATE DECORATOR PATTERN ---");
         System.out.println("1. Basic writer");
-        System.out.println("2. Writer with compression");
-        System.out.println("3. Writer with encryption");
-        System.out.println("4. Writer with compression and encryption");
+        System.out.println("2. Writer with encryption");
         System.out.print("Choice: ");
         
         int choice = scanner.nextInt();
@@ -593,13 +591,7 @@ public class Menu {
             case 1:
                 break;
             case 2:
-                writer = new CompressionDataWriterDecorator(writer);
-                break;
-            case 3:
                 writer = new EncryptionDataWriterDecorator(writer);
-                break;
-            case 4:
-                writer = new CompressionDataWriterDecorator(new EncryptionDataWriterDecorator(writer));
                 break;
             default:
                 System.out.println("Invalid choice!");

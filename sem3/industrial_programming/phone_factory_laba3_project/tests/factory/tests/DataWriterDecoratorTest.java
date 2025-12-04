@@ -35,24 +35,6 @@ class DataWriterDecoratorTest {
     }
 
     @Test
-    void testDecoratorChain() {
-        DataWriter baseWriter = new FileHandlerAdapter(new PhoneFileHandler());
-        DataWriter decoratedWriter = new CompressionDataWriterDecorator(
-            new EncryptionDataWriterDecorator(baseWriter)
-        );
-
-        assertNotNull(decoratedWriter);
-        
-        assertDoesNotThrow(() -> {
-            DataWriter writer = new CompressionDataWriterDecorator(
-                new EncryptionDataWriterDecorator(
-                    new FileHandlerAdapter(new PhoneFileHandler())
-                )
-            );
-        });
-    }
-    
-    @Test
     void testBasicDataWriterOperation() {
         File testFile = tempDir.resolve("basic_test.txt").toFile();
         DataWriter writer = new FileHandlerAdapter(new PhoneFileHandler());

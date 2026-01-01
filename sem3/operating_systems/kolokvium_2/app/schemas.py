@@ -1,10 +1,11 @@
 from __future__ import annotations
 from marshmallow import Schema, fields, validates, ValidationError
 from .models import TaskStatus
+from .utils import MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, MIN_PASSWORD_LENGTH
 
 class UserRegisterSchema(Schema):
-    username = fields.Str(required=True, min_length=3, max_length=80)
-    password = fields.Str(required=True, min_length=6, max_length=128)
+    username = fields.Str(required=True, min_length=MIN_USERNAME_LENGTH, max_length=MAX_USERNAME_LENGTH)
+    password = fields.Str(required=True, min_length=MIN_PASSWORD_LENGTH, max_length=128)
     
     @validates("username")
     def validate_username(self, value):

@@ -1,9 +1,9 @@
 from __future__ import annotations
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from ..models import db, User
+from ..models import db, User, Task
 from ..extensions import USERS_REGISTERED_TOTAL
-from ..utils import APIError
+from ..utils import APIError, validate_password, validate_username, MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, MIN_PASSWORD_LENGTH
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -19,11 +19,13 @@ def register():
     if not username or not password:
         raise APIError("Username and password are required", 400, "MISSING_FIELDS")
     
-    if len(username) < 3 or len(username) > 80:
-        raise APIError("Username must be 3-80 characters", 400, "INVALID_USERNAME")
+    if not validate_username(username):
+        raise APIError(f"Username must be {MIN_USERNAME_LENGTH}-{MAX_USERNAME_LENGTH} characters and contain only letters and numbers", 
+                      400, "INVALID_USERNAME")
     
-    if len(password) < 6:
-        raise APIError("Password must be at least 6 characters", 400, "INVALID_PASSWORD")
+    if not validate_password(password):
+        raise APIError(f"Password must be at least {MIN_PASSWORD_LENGTH} characters", 
+                      400, "INVALID_PASSWORD")
     
     existing_user = User.query.filter_by(username=username).first()
     if existing_user:
@@ -113,8 +115,9 @@ def change_password():
     if not old_password or not new_password:
         raise APIError("Old and new password required", 400, "MISSING_FIELDS")
     
-    if len(new_password) < 6:
-        raise APIError("New password must be at least 6 characters", 400, "INVALID_PASSWORD")
+    if not validate_password(new_password):
+        raise APIError(f"New password must be at least {MIN_PASSWORD_LENGTH} characters", 
+                      400, "INVALID_PASSWORD")
     
     user = User.query.get(current_user_id)
     if not user:
@@ -132,29 +135,27 @@ def change_password():
         db.session.rollback()
         current_app.logger.error(f"Password change error for user {user.id}: {str(e)}")
         raise APIError("Failed to change password", 500, "PASSWORD_CHANGE_ERROR")
+
+@auth_bp.route("/delete-account", methods=["DELETE"])
+@jwt_required()
+def delete_account():
+    current_user_id = get_jwt_identity()
     
+    user = User.query.get(current_user_id)
+    if not user:
+        raise APIError("User not found", 404, "USER_NOT_FOUND")
     
-    @auth_bp.route("/delete-account", methods=["DELETE"])
-    @jwt_required()
-    def delete_account():
-        ent_user_id = get_jwt_identity()
-    
-        user = User.query.get(current_user_id)
-        if not user:
-            raise APIError("User not found", 404, "USER_NOT_FOUND")
-    
-        try:
-            Task.query.filter_by(user_id=current_user_id).delete()
+    try:
+        Task.query.filter_by(user_id=current_user_id).delete()
+        db.session.delete(user)
+        db.session.commit()
         
-            db.session.delete(user)
-            db.session.commit()
+        return jsonify({
+            "message": "Account deleted successfully",
+            "user_id": current_user_id
+        }), 200
         
-            return jsonify({
-                "message": "Account deleted successfully",
-                "user_id": current_user_id
-            }), 200
-        
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Account deletion error for user {current_user_id}: {str(e)}")
-            raise APIError("Failed to delete account", 500, "ACCOUNT_DELETE_ERROR")
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Account deletion error for user {current_user_id}: {str(e)}")
+        raise APIError("Failed to delete account", 500, "ACCOUNT_DELETE_ERROR")

@@ -25,7 +25,7 @@ def readiness_check():
     
     try:
         result = db.session.execute(text("SELECT 1")).scalar()
-        if result == 1:
+        if 1 == result:  
             checks["database"] = True
     except Exception as e:
         current_app.logger.warning(f"Database check failed: {e}")
@@ -37,7 +37,7 @@ def readiness_check():
     else:
         try:
             cache.set("health_check", "ok", timeout=5)
-            if cache.get("health_check") == "ok":
+            if "ok" == cache.get("health_check"): 
                 checks["cache"] = True
             else:
                 checks["cache"] = False

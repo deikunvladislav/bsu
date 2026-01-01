@@ -15,7 +15,7 @@ def main():
             print("✓ Database tables verified")
             
             result = db.session.execute(text("SELECT 1")).scalar()
-            if result == 1:
+            if 1 == result:
                 print("✓ Database connection successful")
             else:
                 print("⚠ Database connection test returned unexpected result")

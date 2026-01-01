@@ -4,6 +4,13 @@ from flask import request, jsonify, current_app
 from flask_jwt_extended import get_jwt_identity
 import hashlib
 
+# Константы (избегаем магических чисел)
+MIN_USERNAME_LENGTH = 3
+MAX_USERNAME_LENGTH = 80
+MIN_PASSWORD_LENGTH = 6
+DEFAULT_PAGE_LIMIT = 50
+MAX_PAGE_LIMIT = 100
+
 def validate_request(schema_class):
     def decorator(f):
         @wraps(f)
@@ -54,9 +61,9 @@ def get_pagination_params():
     offset = request.args.get('offset', 0, type=int)
     
     if limit is None:
-        limit = 50
-    elif limit > 100:
-        limit = 100
+        limit = DEFAULT_PAGE_LIMIT
+    elif limit > MAX_PAGE_LIMIT:
+        limit = MAX_PAGE_LIMIT
     elif limit < 1:
         limit = 1
     
@@ -64,6 +71,20 @@ def get_pagination_params():
         offset = 0
     
     return limit, offset
+
+def validate_password(password: str, min_length: int = MIN_PASSWORD_LENGTH) -> bool:
+    """Validate password according to requirements"""
+    if not password or len(password) < min_length:
+        return False
+    return True
+
+def validate_username(username: str, min_len: int = MIN_USERNAME_LENGTH, max_len: int = MAX_USERNAME_LENGTH) -> bool:
+    """Validate username according to requirements"""
+    if not username or len(username) < min_len or len(username) > max_len:
+        return False
+    if not username.isalnum():
+        return False
+    return True
 
 class APIError(Exception):
     def __init__(self, message, status_code=400, code=None, errors=None):

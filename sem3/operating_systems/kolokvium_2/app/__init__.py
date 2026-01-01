@@ -6,7 +6,7 @@ from .utils import APIError
 __all__ = [
     "create_app",
     "db",
-    "User",
+    "User", 
     "Task",
     "jwt",
     "cache",

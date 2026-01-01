@@ -25,7 +25,7 @@ def main():
                     
                     try:
                         result = db.session.execute(text("SELECT 1")).scalar()
-                        if result == 1:
+                        if 1 == result:  # Константа слева
                             print("✓ Database connection successful")
                         else:
                             print("⚠ Database connection returned unexpected value")

@@ -4,8 +4,8 @@
 *.xml
 *.zip
 *.gz
-*.bat
 *.enc
+*.db
 !CMakePresets.json
 !CMakeLists.txt
 

@@ -3,7 +3,8 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..models import db, Task, TaskStatus, User
 from ..extensions import cache, TASKS_CREATED_TOTAL, TASKS_UPDATED_TOTAL
-from ..utils import cache_key_prefix, APIError
+from ..utils import cache_key_prefix, APIError, invalidate_task_cache
+from ..validators import validate_task_status, validate_task_data
 
 tasks_bp = Blueprint("tasks", __name__)
 
@@ -25,11 +26,7 @@ def create_task():
     if not isinstance(data["title"], str) or len(data["title"].strip()) == 0:
         raise APIError("Title must be a non-empty string", 400, "INVALID_TITLE")
     
-    try:
-        task_status = TaskStatus(data["status"])
-    except ValueError:
-        raise APIError(f"Invalid status. Must be one of: {', '.join(TaskStatus.get_all())}", 
-                        400, "INVALID_STATUS")
+    task_status = validate_task_status(data["status"])
     
     try:
         task = Task(
@@ -42,8 +39,7 @@ def create_task():
         db.session.add(task)
         db.session.commit()
         
-        cache.delete(f"user_tasks_{current_user_id}")
-        cache.delete("all_tasks_stats")
+        invalidate_task_cache(user_id=current_user_id)
         
         TASKS_CREATED_TOTAL.labels(user_id=current_user_id).inc()
         
@@ -120,11 +116,7 @@ def replace_task(task_id):
     if not isinstance(data['title'], str) or len(data['title'].strip()) == 0:
         raise APIError("Title must be a non-empty string", 400, "INVALID_TITLE")
     
-    try:
-        task_status = TaskStatus(data['status'])
-    except ValueError:
-        raise APIError(f"Invalid status. Must be one of: {', '.join(TaskStatus.get_all())}", 
-                        400, "INVALID_STATUS")
+    task_status = validate_task_status(data['status'])
     
     task.title = data['title'].strip()
     task.description = data.get('description', '') or ''
@@ -133,8 +125,7 @@ def replace_task(task_id):
     try:
         db.session.commit()
         
-        cache.delete(f"user_tasks_{current_user_id}")
-        cache.delete(f"task_{task_id}")
+        invalidate_task_cache(user_id=current_user_id, task_id=task_id)
         
         TASKS_UPDATED_TOTAL.labels(
             user_id=current_user_id,
@@ -175,13 +166,9 @@ def update_task(task_id):
         updated = True
     
     if "status" in data and data["status"] is not None:
-        try:
-            task_status = TaskStatus(data["status"])
-            task.status = task_status
-            updated = True
-        except ValueError:
-            raise APIError(f"Invalid status. Must be one of: {', '.join(TaskStatus.get_all())}", 
-                        400, "INVALID_STATUS")
+        task_status = validate_task_status(data["status"])
+        task.status = task_status
+        updated = True
     
     if not updated:
         raise APIError("No valid fields to update", 400, "NO_VALID_FIELDS")
@@ -189,8 +176,7 @@ def update_task(task_id):
     try:
         db.session.commit()
         
-        cache.delete(f"user_tasks_{current_user_id}")
-        cache.delete(f"task_{task_id}")
+        invalidate_task_cache(user_id=current_user_id, task_id=task_id)
         
         if "status" in data:
             TASKS_UPDATED_TOTAL.labels(
@@ -219,8 +205,7 @@ def delete_task(task_id):
         db.session.delete(task)
         db.session.commit()
         
-        cache.delete(f"user_tasks_{current_user_id}")
-        cache.delete(f"task_{task_id}")
+        invalidate_task_cache(user_id=current_user_id, task_id=task_id)
         
         return "", 204
         

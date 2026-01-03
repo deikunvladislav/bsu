@@ -3,6 +3,7 @@ from flask import jsonify, request
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timezone
 from .utils import APIError
+from flask_jwt_extended.exceptions import JWTExtendedException
 
 def setup_error_handlers(app):
     
@@ -11,6 +12,14 @@ def setup_error_handlers(app):
         response = jsonify(error.to_dict())
         response.status_code = error.status_code
         return response
+    
+    @app.errorhandler(JWTExtendedException)
+    def handle_jwt_error(error):
+        return jsonify({
+            "message": str(error),
+            "code": "JWT_ERROR",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        }), 401
     
     @app.errorhandler(400)
     def handle_bad_request(error):
@@ -38,6 +47,14 @@ def setup_error_handlers(app):
             "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         }), 405
     
+    @app.errorhandler(415)
+    def handle_unsupported_media_type(error):
+        return jsonify({
+            "message": "Unsupported media type. Use application/json",
+            "code": "UNSUPPORTED_MEDIA_TYPE",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        }), 415
+    
     @app.errorhandler(500)
     def handle_internal_error(error):
         app.logger.error(f"Internal server error: {error}")
@@ -61,6 +78,14 @@ def setup_error_handlers(app):
     @app.errorhandler(Exception)
     def handle_generic_error(error):
         app.logger.error(f"Unhandled error: {error}")
+        
+        if hasattr(error, 'code'):
+            if error.code == 415:
+                return jsonify({
+                    "message": "Unsupported media type. Use application/json",
+                    "code": "UNSUPPORTED_MEDIA_TYPE",
+                    "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                }), 415
         
         return jsonify({
             "message": "An unexpected error occurred",

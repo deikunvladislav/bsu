@@ -3,8 +3,8 @@ from functools import wraps
 from flask import request, jsonify, current_app
 from flask_jwt_extended import get_jwt_identity
 import hashlib
+from .extensions import cache
 
-# Константы (избегаем магических чисел)
 MIN_USERNAME_LENGTH = 3
 MAX_USERNAME_LENGTH = 80
 MIN_PASSWORD_LENGTH = 6
@@ -73,18 +73,23 @@ def get_pagination_params():
     return limit, offset
 
 def validate_password(password: str, min_length: int = MIN_PASSWORD_LENGTH) -> bool:
-    """Validate password according to requirements"""
     if not password or len(password) < min_length:
         return False
     return True
 
 def validate_username(username: str, min_len: int = MIN_USERNAME_LENGTH, max_len: int = MAX_USERNAME_LENGTH) -> bool:
-    """Validate username according to requirements"""
     if not username or len(username) < min_len or len(username) > max_len:
         return False
     if not username.isalnum():
         return False
     return True
+
+def invalidate_task_cache(user_id: int = None, task_id: int = None):
+    if user_id:
+        cache.delete(f"user_tasks_{user_id}")
+    if task_id:
+        cache.delete(f"task_{task_id}")
+    cache.delete("all_tasks_stats")
 
 class APIError(Exception):
     def __init__(self, message, status_code=400, code=None, errors=None):

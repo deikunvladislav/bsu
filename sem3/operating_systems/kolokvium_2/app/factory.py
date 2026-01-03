@@ -37,14 +37,14 @@ def create_app(config_name: str = None) -> Flask:
         'CACHE_DEFAULT_TIMEOUT': config.CACHE_DEFAULT_TIMEOUT
     })
     
-    setup_metrics_middleware(app)
+    setup_error_handlers(app)
     
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(tasks_bp, url_prefix="")
     app.register_blueprint(health_bp, url_prefix="")
     app.register_blueprint(metrics_bp, url_prefix="")
     
-    setup_error_handlers(app)
+    setup_metrics_middleware(app)
     
     @app.before_request
     def create_tables_if_needed():

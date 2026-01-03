@@ -6,8 +6,10 @@
 *.gz
 *.enc
 *.db
+*.env
 !CMakePresets.json
 !CMakeLists.txt
+!requirements.txt
 
 # === exclude Visual Studio artifacts ===
 *.vcxproj

@@ -24,7 +24,6 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), 
                             onupdate=lambda: datetime.now(timezone.utc))
     
-    # Relationships
     tasks = db.relationship('Task', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):

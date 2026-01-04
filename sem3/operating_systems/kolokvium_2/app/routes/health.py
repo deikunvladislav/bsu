@@ -8,7 +8,6 @@ health_bp = Blueprint("health", __name__)
 
 @health_bp.route("/health/live", methods=["GET"])
 def liveness_check():
-    """Liveness check endpoint"""
     return jsonify({
         "status": "alive",
         "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -16,7 +15,6 @@ def liveness_check():
 
 @health_bp.route("/health/ready", methods=["GET"])
 def readiness_check():
-    """Readiness check endpoint"""
     checks = {
         "database": False,
         "cache": False,

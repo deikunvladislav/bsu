@@ -8,7 +8,6 @@ from app import create_app
 from app.models import db
 
 def main():
-    """Main function to initialize database"""
     print("Initializing database...")
     
     app = create_app("development")
@@ -25,7 +24,7 @@ def main():
                     
                     try:
                         result = db.session.execute(text("SELECT 1")).scalar()
-                        if 1 == result:  # Константа слева
+                        if 1 == result:
                             print("✓ Database connection successful")
                         else:
                             print("⚠ Database connection returned unexpected value")

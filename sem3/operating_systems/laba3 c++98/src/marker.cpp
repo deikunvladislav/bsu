@@ -2,6 +2,7 @@
 #include "constants.hpp"
 #include <windows.h>
 #include <iostream>
+#include <cstdio>
 #include <cstdlib>
 
 Marker::Marker(int id, SharedArray& arr, HANDLE startEvent)
@@ -14,8 +15,9 @@ Marker::Marker(int id, SharedArray& arr, HANDLE startEvent)
     terminateEvent_(NULL),
     finished_(false),
     markedCount_(0),
-    lastConflictIndex_(static_cast<std::size_t>(-1)) {
-    blockedEvent_ = CreateEventA(NULL, FALSE, FALSE, NULL);
+    lastConflictIndex_(static_cast<std::size_t>(-1)),
+    shouldCheckSameIndex_(false) {
+    blockedEvent_ = CreateEventA(NULL, TRUE, FALSE, NULL);
     continueEvent_ = CreateEventA(NULL, TRUE, FALSE, NULL);
     terminateEvent_ = CreateEventA(NULL, TRUE, FALSE, NULL);
 }
@@ -50,7 +52,6 @@ void Marker::join() {
 
 void Marker::signalTerminate() {
     SetEvent(terminateEvent_);
-    SetEvent(continueEvent_);
 }
 
 void Marker::signalContinue() {
@@ -59,6 +60,10 @@ void Marker::signalContinue() {
 
 void Marker::waitBlocked() {
     WaitForSingleObject(blockedEvent_, INFINITE);
+}
+
+void Marker::resetBlocked() {
+    ResetEvent(blockedEvent_);
 }
 
 DWORD WINAPI Marker::ThreadProcStatic(LPVOID param) {
@@ -72,12 +77,25 @@ DWORD Marker::run() {
     }
     std::srand(static_cast<unsigned int>(id_));
     const std::size_t N = arr_.size();
+
     for (;;) {
         if (WaitForSingleObject(terminateEvent_, 0) == WAIT_OBJECT_0) {
             break;
         }
-        std::size_t idx = static_cast<std::size_t>(std::rand()) % N;
-        if (arr_.get(idx) == 0) {
+
+        std::size_t idx;
+        bool checkingSameIndexForBlock = false;
+        if (shouldCheckSameIndex_) {
+            idx = lastConflictIndex_;
+            shouldCheckSameIndex_ = false;
+            checkingSameIndexForBlock = true;
+        }
+        else {
+            idx = static_cast<std::size_t>(std::rand()) % N;
+        }
+
+        int currentValue = arr_.get(idx);
+        if (currentValue == 0 && !checkingSameIndexForBlock) {
             Sleep(kPreWriteSleepMs);
             arr_.set(idx, id_);
             ++markedCount_;
@@ -85,39 +103,36 @@ DWORD Marker::run() {
         }
         else {
             lastConflictIndex_ = idx;
-            std::cout << "Marker " << id_
-                << " blocked; marked=" << markedCount_
-                << "; conflict_index=" << idx << "\n";
-            notifyBlocked();
-            if (!waitForContinueOrTerminate()) {
+
+            Sleep(10);
+            printf("Marker %d blocked; marked=%d; conflict_index=%d\n",
+                id_, (int)markedCount_, (int)idx);
+            fflush(stdout);
+
+            SetEvent(blockedEvent_);
+
+            HANDLE events[2] = { terminateEvent_, continueEvent_ };
+            DWORD waitResult = WaitForMultipleObjects(2, events, FALSE, INFINITE);
+
+            if (waitResult == WAIT_OBJECT_0) {
                 break;
             }
-            ResetEvent(continueEvent_);
+            else if (waitResult == WAIT_OBJECT_0 + 1) {
+                ResetEvent(continueEvent_);
+                ResetEvent(blockedEvent_);
+                shouldCheckSameIndex_ = true;
+            }
         }
+
         Sleep(kLoopBackoffMs);
     }
-    const std::size_t M = arr_.size();
-    for (std::size_t i = 0; i < M; ++i) {
+
+    for (std::size_t i = 0; i < arr_.size(); ++i) {
         if (arr_.get(i) == id_) {
             arr_.set(i, 0);
         }
     }
+
     finished_ = true;
     return 0;
-}
-
-void Marker::notifyBlocked() {
-    SetEvent(blockedEvent_);
-}
-
-// Waits for either termination or continuation signal.
-// Returns true if continuation is requested, false if termination.
-bool Marker::waitForContinueOrTerminate() {
-    HANDLE events[2];
-    events[0] = terminateEvent_;
-    events[1] = continueEvent_;
-    DWORD w = WaitForMultipleObjects(2, events, FALSE, INFINITE);
-    if (w == WAIT_OBJECT_0) return false;
-    if (w == WAIT_OBJECT_0 + 1) return true;
-    return false;
 }

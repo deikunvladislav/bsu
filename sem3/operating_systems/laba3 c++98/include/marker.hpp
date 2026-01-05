@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <cstddef>
 #include <string>
+#include <vector>
 #include <boost/shared_ptr.hpp>
 
 class Marker {
@@ -18,6 +19,7 @@ public:
     void signalTerminate();
     void signalContinue();
     void waitBlocked();
+    void resetBlocked();
 
     int id() const { return id_; }
     std::size_t markedCount() const { return markedCount_; }
@@ -29,8 +31,6 @@ private:
 
     static DWORD WINAPI ThreadProcStatic(LPVOID param);
     DWORD run();
-    void notifyBlocked();
-    bool waitForContinueOrTerminate();
 
     int id_;
     SharedArray& arr_;
@@ -42,4 +42,5 @@ private:
     volatile bool finished_;
     std::size_t markedCount_;
     std::size_t lastConflictIndex_;
+    bool shouldCheckSameIndex_;
 };

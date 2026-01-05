@@ -4,6 +4,7 @@
 #include <iostream>
 #include <windows.h>
 #include <stdexcept>
+#include <conio.h>
 
 int main() {
     try {
@@ -29,6 +30,9 @@ int main() {
 
         replaceMinMaxWithAverage(data);
         printArray(data.numbers);
+
+        std::cout << "\nPress any key to exit...";
+        _getch();
 
         return 0;
     }

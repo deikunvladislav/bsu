@@ -3,6 +3,7 @@
 #include <vector>
 #include "shared_data.h"
 #include "threads.h"
+#include <conio.h>
 
 int main() {
     SharedData data;
@@ -30,6 +31,9 @@ int main() {
         std::cout << x << " ";
     }
     std::cout << "\n";
+
+    std::cout << "\nPress any key to exit...";
+    _getch();
 
     return 0;
 }

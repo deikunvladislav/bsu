@@ -21,10 +21,10 @@ laba1_cmake/
 ├── src/                    # Main application source code
 │   ├── Creator.cpp         # Binary file creation utility
 │   ├── Reporter.cpp        # Report generation utility
-│   └── Main.cpp           # Main orchestration program
+│   └── Main.cpp            # Main orchestration program
 ├── tests/                  # Unit tests directory
-│   └── Tests.cpp          # Google Test test cases
-└── README.md              # This documentation file
+│   └── Tests.cpp           # Google Test test cases
+└── README.md               # This documentation file
 ```
 
 ## 🏗️ Building the Project

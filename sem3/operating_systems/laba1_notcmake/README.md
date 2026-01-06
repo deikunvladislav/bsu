@@ -63,7 +63,3 @@ The `Laba1_tester` project validates:
 - Component integration
 
 **Note**: `pch.h` and `pch.cpp` are located in the `Laba1_tester/` folder as they're primarily used for testing.
-
----
-
-*Lab work completed at BSU Department of Programming Technology under A.P. Pobegailo.*

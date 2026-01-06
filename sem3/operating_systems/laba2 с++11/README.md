@@ -10,7 +10,7 @@ This C++11 project demonstrates Windows thread creation and synchronization usin
 ## 📁 Project Structure
 
 ```
-laba2_cxx11/
+laba2 c++11/
 ├── CMakeLists.txt          # Main CMake configuration file
 ├── CMakePresets.json       # CMake presets for build configuration
 ├── compilation.txt         # Compilation instructions

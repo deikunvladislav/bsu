@@ -17,7 +17,11 @@ def validate_request(schema_class):
         def decorated_function(*args, **kwargs):
             data = request.get_json(silent=True)
             if data is None:
-                raise APIError("Invalid JSON", 400, "INVALID_JSON")
+                return jsonify({
+                    "success": False,
+                    "message": "Invalid JSON",
+                    "code": "INVALID_JSON"
+                }), 400
             
             try:
                 schema = schema_class()
@@ -27,21 +31,22 @@ def validate_request(schema_class):
                     error_details = []
                     for field, messages in errors.items():
                         error_details.append(f"{field}: {', '.join(messages)}")
-                    raise APIError(
-                        "Validation failed", 
-                        400, 
-                        "VALIDATION_ERROR",
-                        errors=error_details
-                    )
+                    return jsonify({
+                        "success": False,
+                        "message": "Validation failed",
+                        "code": "VALIDATION_ERROR",
+                        "errors": error_details
+                    }), 400
                 
                 return f(data, *args, **kwargs)
                 
             except Exception as e:
                 current_app.logger.error(f"Validation error: {str(e)}")
-                if isinstance(e, APIError):
-                    raise e
-                else:
-                    raise APIError(str(e), 400, "VALIDATION_ERROR")
+                return jsonify({
+                    "success": False,
+                    "message": str(e),
+                    "code": "VALIDATION_ERROR"
+                }), 400
                 
         return decorated_function
     return decorator
@@ -101,6 +106,7 @@ class APIError(Exception):
     
     def to_dict(self):
         result = {
+            "success": False,
             "message": self.message,
             "code": self.code or "API_ERROR"
         }

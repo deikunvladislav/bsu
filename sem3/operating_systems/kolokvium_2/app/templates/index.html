@@ -1,0 +1,705 @@
+{% extends "base.html" %}
+
+{% block title %}Todo Manager - Organize Your Life{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 80px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    opacity: 0.9;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.btn-hero {
+    padding: 16px 32px;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-hero-primary {
+    background: white;
+    color: #667eea;
+}
+
+.btn-hero-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+}
+
+.btn-hero-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-hero-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px);
+}
+
+.hero-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    margin-top: 60px;
+}
+
+.hero-feature {
+    text-align: center;
+    padding: 20px;
+}
+
+.hero-feature i {
+    font-size: 40px;
+    margin-bottom: 20px;
+    color: #ffd166;
+}
+
+.hero-feature h3 {
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.hero-feature p {
+    opacity: 0.8;
+    font-size: 14px;
+}
+
+/* Features Section */
+.features-section {
+    padding: 100px 0;
+    background: #f8f9fa;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-title h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 15px;
+}
+
+.section-title p {
+    color: #6c757d;
+    font-size: 18px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+}
+
+.feature-icon i {
+    font-size: 36px;
+    color: white;
+}
+
+.feature-card h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #212529;
+}
+
+.feature-card p {
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+.feature-list li {
+    padding: 8px 0;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.feature-list li i {
+    color: #06d6a0;
+}
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, #118ab2 0%, #0c7aa0 100%);
+    color: white;
+    padding: 100px 0;
+    text-align: center;
+}
+
+.cta-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.cta-content h2 {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.cta-content p {
+    font-size: 20px;
+    opacity: 0.9;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.btn-cta {
+    background: white;
+    color: #118ab2;
+    padding: 18px 36px;
+    border-radius: 50px;
+    font-size: 20px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.btn-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+}
+
+/* API Section */
+.api-section {
+    padding: 100px 0;
+    background: #212529;
+    color: white;
+}
+
+.api-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.api-content h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.api-content p {
+    font-size: 18px;
+    opacity: 0.8;
+    margin-bottom: 40px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.api-examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.api-example {
+    background: #2d3748;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: left;
+}
+
+.api-example h4 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #90cdf4;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.api-example pre {
+    background: #1a202c;
+    padding: 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Stats Section */
+.stats-section {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 30px;
+}
+
+.stat-number {
+    font-size: 48px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 10px;
+}
+
+.stat-label {
+    font-size: 18px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Testimonials */
+.testimonials-section {
+    padding: 100px 0;
+}
+
+.testimonial-slider {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.testimonial {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.testimonial-text {
+    font-size: 20px;
+    font-style: italic;
+    color: #495057;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.author-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+}
+
+.author-info h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.author-info p {
+    margin: 5px 0 0;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 36px;
+    }
+    
+    .hero-subtitle {
+        font-size: 18px;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-hero {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    
+    .section-title h2 {
+        font-size: 28px;
+    }
+    
+    .cta-content h2 {
+        font-size: 32px;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+.floating-element {
+    animation: float 6s ease-in-out infinite;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Organize Your Life,<br>One Task at a Time</h1>
+        <p class="hero-subtitle">Todo Manager is the ultimate productivity tool that helps you stay organized, focused, and in control of your daily tasks and projects.</p>
+        
+        <div class="hero-buttons">
+            {% if current_user %}
+            <a href="{{ url_for('frontend.dashboard') }}" class="btn-hero btn-hero-primary">
+                <i class="fas fa-rocket"></i> Go to Dashboard
+            </a>
+            {% else %}
+            <a href="{{ url_for('frontend.register') }}" class="btn-hero btn-hero-primary">
+                <i class="fas fa-rocket"></i> Get Started Free
+            </a>
+            <a href="{{ url_for('frontend.login') }}" class="btn-hero btn-hero-secondary">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </a>
+            {% endif %}
+        </div>
+        
+        <div class="hero-features">
+            <div class="hero-feature">
+                <i class="fas fa-bolt"></i>
+                <h3>Lightning Fast</h3>
+                <p>Instant task creation and updates</p>
+            </div>
+            <div class="hero-feature">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Secure & Private</h3>
+                <p>Your data stays with you</p>
+            </div>
+            <div class="hero-feature">
+                <i class="fas fa-sync"></i>
+                <h3>Always Synced</h3>
+                <p>Access from anywhere</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="section-title">
+        <h2>Everything You Need in One Place</h2>
+        <p>Powerful features to manage your tasks efficiently and effectively</p>
+    </div>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-list-check"></i>
+            </div>
+            <h3>Smart Task Management</h3>
+            <p>Create, organize, and prioritize your tasks with ease. Set deadlines, add descriptions, and track progress.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Create unlimited tasks</li>
+                <li><i class="fas fa-check"></i> Set priority levels</li>
+                <li><i class="fas fa-check"></i> Add detailed descriptions</li>
+                <li><i class="fas fa-check"></i> Track completion status</li>
+            </ul>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Progress Tracking</h3>
+            <p>Monitor your productivity with detailed statistics and visual progress indicators.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Real-time statistics</li>
+                <li><i class="fas fa-check"></i> Progress visualization</li>
+                <li><i class="fas fa-check"></i> Performance insights</li>
+                <li><i class="fas fa-check"></i> Achievement tracking</li>
+            </ul>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <h3>Access Anywhere</h3>
+            <p>Access your tasks from any device with a modern web browser. No installation required.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Fully responsive design</li>
+                <li><i class="fas fa-check"></i> Mobile-friendly interface</li>
+                <li><i class="fas fa-check"></i> Cross-browser compatibility</li>
+                <li><i class="fas fa-check"></i> Offline-ready (coming soon)</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number" id="users-count">1000+</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="tasks-count">50,000+</div>
+            <div class="stat-label">Tasks Created</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="uptime-count">99.9%</div>
+            <div class="stat-label">Uptime</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="speed-count">&lt;100ms</div>
+            <div class="stat-label">Response Time</div>
+        </div>
+    </div>
+</section>
+
+<!-- API Section -->
+<section class="api-section">
+    <div class="api-content">
+        <h2><i class="fas fa-code"></i> Developer Friendly API</h2>
+        <p>Build your own applications with our powerful REST API. Full documentation and easy integration.</p>
+        
+        <div class="api-examples">
+            <div class="api-example">
+                <h4><i class="fas fa-key"></i> Authentication</h4>
+                <pre><code>POST /api/auth/login
+{
+    "username": "your_user",
+    "password": "your_pass"
+}
+
+Response:
+{
+    "access_token": "jwt_token_here",
+    "user": { ... }
+}</code></pre>
+            </div>
+            
+            <div class="api-example">
+                <h4><i class="fas fa-tasks"></i> Create Task</h4>
+                <pre><code>POST /api/tasks
+Authorization: Bearer {token}
+{
+    "title": "Complete project",
+    "description": "Finalize the API",
+    "status": "in_progress"
+}</code></pre>
+            </div>
+            
+            <div class="api-example">
+                <h4><i class="fas fa-list"></i> Get Tasks</h4>
+                <pre><code>GET /api/tasks
+Authorization: Bearer {token}
+?status=todo&limit=10&offset=0
+
+Response: [{
+    "id": 1,
+    "title": "Task title",
+    "status": "todo",
+    ...
+}]</code></pre>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('frontend.api_docs') }}" class="btn-cta" style="margin-top: 50px;">
+            <i class="fas fa-book"></i> View Full API Documentation
+        </a>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="cta-content">
+        <h2>Ready to Boost Your Productivity?</h2>
+        <p>Join thousands of users who are already managing their tasks more efficiently with Todo Manager. It's free to get started!</p>
+        
+        {% if current_user %}
+        <a href="{{ url_for('frontend.dashboard') }}" class="btn-cta">
+            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+        </a>
+        {% else %}
+        <a href="{{ url_for('frontend.register') }}" class="btn-cta">
+            <i class="fas fa-user-plus"></i> Create Free Account
+        </a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials-section">
+    <div class="section-title">
+        <h2>Loved by Productivity Enthusiasts</h2>
+        <p>See what our users have to say about Todo Manager</p>
+    </div>
+    
+    <div class="testimonial-slider">
+        <div class="testimonial">
+            <div class="testimonial-text">
+                "Todo Manager has completely transformed how I organize my work. The clean interface and powerful features make task management a breeze!"
+            </div>
+            <div class="testimonial-author">
+                <div class="author-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="author-info">
+                    <h4>Alex Johnson</h4>
+                    <p>Project Manager</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Animate stats
+document.addEventListener('DOMContentLoaded', function() {
+    // Check API status
+    checkApiStatus();
+    
+    // Animate stats
+    animateCounter('users-count', 1000, 1500, '+');
+    animateCounter('tasks-count', 50000, 2000, '+');
+});
+
+function checkApiStatus() {
+    fetch('/api/health/live')
+        .then(response => {
+            if (response.ok) {
+                document.getElementById('api-status').textContent = 'Online';
+                document.getElementById('api-status').style.color = '#10b981';
+            } else {
+                document.getElementById('api-status').textContent = 'Offline';
+                document.getElementById('api-status').style.color = '#ef4444';
+            }
+        })
+        .catch(() => {
+            document.getElementById('api-status').textContent = 'Offline';
+            document.getElementById('api-status').style.color = '#ef4444';
+        });
+}
+
+function animateCounter(elementId, target, duration, suffix = '') {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const start = 0;
+    const increment = target / (duration / 16); // 60fps
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            current = target;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(current).toLocaleString() + suffix;
+    }, 16);
+}
+</script>
+{% endblock %}

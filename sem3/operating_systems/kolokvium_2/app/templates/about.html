@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}About - Todo App{% endblock %}
+
+{% block content %}
+<div class="about-container">
+    <h1><i class="fas fa-info-circle"></i> About Todo Manager</h1>
+    
+    <div class="about-content">
+        <section class="about-section">
+            <h2><i class="fas fa-rocket"></i> Project Overview</h2>
+            <p>Todo Manager is a full-featured task management application built with Flask and modern web technologies.</p>
+            <p>This project demonstrates REST API design, authentication, database management, and a responsive web interface.</p>
+        </section>
+        
+        <section class="about-section">
+            <h2><i class="fas fa-code"></i> Technology Stack</h2>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <i class="fab fa-python"></i>
+                    <h3>Backend</h3>
+                    <ul>
+                        <li>Flask Web Framework</li>
+                        <li>SQLAlchemy ORM</li>
+                        <li>JWT Authentication</li>
+                        <li>RESTful API Design</li>
+                    </ul>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-js"></i>
+                    <h3>Frontend</h3>
+                    <ul>
+                        <li>Vanilla JavaScript</li>
+                        <li>Responsive CSS</li>
+                        <li>AJAX Requests</li>
+                        <li>Modern UI/UX</li>
+                    </ul>
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-database"></i>
+                    <h3>Database</h3>
+                    <ul>
+                        <li>SQLite (Development)</li>
+                        <li>SQLAlchemy Models</li>
+                        <li>Database Migrations</li>
+                        <li>Data Validation</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <section class="about-section">
+            <h2><i class="fas fa-feather-alt"></i> Features</h2>
+            <ul class="features-list">
+                <li><i class="fas fa-check-circle"></i> User registration and authentication</li>
+                <li><i class="fas fa-check-circle"></i> Create, read, update, delete tasks</li>
+                <li><i class="fas fa-check-circle"></i> Task status management (Todo, In Progress, Done)</li>
+                <li><i class="fas fa-check-circle"></i> Responsive web interface</li>
+                <li><i class="fas fa-check-circle"></i> REST API for integration</li>
+                <li><i class="fas fa-check-circle"></i> JWT-based authentication</li>
+                <li><i class="fas fa-check-circle"></i> Database persistence</li>
+                <li><i class="fas fa-check-circle"></i> Error handling and validation</li>
+            </ul>
+        </section>
+        
+        <section class="about-section">
+            <h2><i class="fas fa-graduation-cap"></i> Educational Purpose</h2>
+            <p>This project was created as part of an Operating Systems course to demonstrate:</p>
+            <ul>
+                <li>REST API design principles</li>
+                <li>Client-server architecture</li>
+                <li>Database management</li>
+                <li>Web application development</li>
+                <li>Authentication and security</li>
+            </ul>
+        </section>
+        
+        <div class="back-home">
+            <a href="{{ url_for('frontend.index') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

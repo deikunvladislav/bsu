@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ status_code }} - Todo App{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <h1><i class="fas fa-exclamation-triangle"></i> Error {{ status_code }}</h1>
+        
+        <div class="error-message">
+            <p>{{ error_message or (error.message if error else 'Unknown error') }}</p>
+            
+            {% if error and error.code %}
+            <p><strong>Error Code:</strong> {{ error.code }}</p>
+            {% endif %}
+            
+            {% if error and error.errors %}
+            <div class="error-details">
+                <h3>Details:</h3>
+                <ul>
+                    {% for err in error.errors %}
+                    <li>{{ err }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="error-actions">
+            <a href="{{ url_for('frontend.index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Go Home
+            </a>
+            
+            <a href="javascript:history.back()" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Go Back
+            </a>
+            
+            {% if status_code == 401 %}
+            <a href="{{ url_for('frontend.login') }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            {% endif %}
+        </div>
+        
+        <div class="error-timestamp">
+            <small>Error occurred at: {{ current_time }}</small>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-container {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.error-content {
+    background: white;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.error-content h1 {
+    color: #ef4444;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.error-message {
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+    padding: 1rem;
+    margin: 2rem 0;
+    text-align: left;
+    border-radius: 0 6px 6px 0;
+}
+
+.error-details {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #fee2e2;
+    border-radius: 6px;
+}
+
+.error-details h3 {
+    margin-top: 0;
+    color: #991b1b;
+}
+
+.error-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.error-timestamp {
+    margin-top: 2rem;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}

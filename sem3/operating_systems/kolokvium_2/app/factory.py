@@ -4,12 +4,12 @@ from flask import Flask
 from dotenv import load_dotenv
 from sqlalchemy import text
 from .config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
-from .extensions import db, jwt, cache, setup_metrics_middleware
+from .extensions import db, jwt, cache
 from .logging_config import setup_logging
 from .routes.auth import auth_bp
 from .routes.tasks import tasks_bp
 from .routes.health import health_bp
-from .routes.metrics import metrics_bp
+from .routes.frontend import frontend_bp
 from .error_handlers import setup_error_handlers
 
 def create_app(config_name: str = None) -> Flask:
@@ -30,6 +30,9 @@ def create_app(config_name: str = None) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config)
     
+    # Set secret key for sessions
+    app.secret_key = config.SECRET_KEY
+    
     db.init_app(app)
     jwt.init_app(app)
     cache.init_app(app, config={
@@ -39,12 +42,13 @@ def create_app(config_name: str = None) -> Flask:
     
     setup_error_handlers(app)
     
-    app.register_blueprint(auth_bp, url_prefix="/auth")
-    app.register_blueprint(tasks_bp, url_prefix="")
-    app.register_blueprint(health_bp, url_prefix="")
-    app.register_blueprint(metrics_bp, url_prefix="")
+    # Register API blueprints with /api prefix
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(tasks_bp, url_prefix="/api")
+    app.register_blueprint(health_bp, url_prefix="/api/health")
     
-    setup_metrics_middleware(app)
+    # Register frontend blueprint
+    app.register_blueprint(frontend_bp, url_prefix="")
     
     @app.before_request
     def create_tables_if_needed():
@@ -55,6 +59,7 @@ def create_app(config_name: str = None) -> Flask:
                     
                     try:
                         db.session.execute(text("SELECT 1")).scalar()
+                        app.logger.info("Database connection test successful")
                     except Exception as e:
                         app.logger.error(f"Database connection test failed: {e}")
                     
@@ -62,7 +67,7 @@ def create_app(config_name: str = None) -> Flask:
                     app.logger.info("Database tables verified")
             except Exception as e:
                 app.logger.error(f"Error creating tables: {e}")
-                
+    
     @app.cli.command("init-db")
     def init_db():
         with app.app_context():
@@ -76,8 +81,9 @@ def create_app(config_name: str = None) -> Flask:
         password = getpass.getpass("Password: ")
         
         from werkzeug.security import generate_password_hash
+        from .models import User
+        
         with app.app_context():
-            from .models import User
             user = User(username=username, password_hash=generate_password_hash(password))
             db.session.add(user)
             db.session.commit()

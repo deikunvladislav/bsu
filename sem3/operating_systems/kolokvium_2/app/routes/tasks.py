@@ -1,36 +1,55 @@
 from __future__ import annotations
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..models import db, Task, TaskStatus, User
-from ..extensions import cache, TASKS_CREATED_TOTAL, TASKS_UPDATED_TOTAL
-from ..utils import cache_key_prefix, APIError, invalidate_task_cache
-from ..validators import validate_task_status, validate_task_data
+from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime, timezone
+from ..models import db, Task, TaskStatus
+from ..extensions import cache
+from ..utils import invalidate_task_cache
 
 tasks_bp = Blueprint("tasks", __name__)
 
 @tasks_bp.route("/tasks", methods=["POST"])
 @jwt_required()
 def create_task():
-    current_user_id = get_jwt_identity()
-    
-    data = request.get_json()
-    if not data:
-        raise APIError("Invalid JSON", 400, "INVALID_JSON")
-    
-    if "title" not in data:
-        raise APIError("Title is required", 400, "MISSING_TITLE")
-    
-    if "status" not in data:
-        raise APIError("Status is required", 400, "MISSING_STATUS")
-    
-    if not isinstance(data["title"], str) or len(data["title"].strip()) == 0:
-        raise APIError("Title must be a non-empty string", 400, "INVALID_TITLE")
-    
-    task_status = validate_task_status(data["status"])
-    
+    """Create a new task"""
     try:
+        current_user_id = get_jwt_identity()
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "Invalid JSON",
+                "code": "INVALID_JSON"
+            }), 400
+        
+        # Validate required fields
+        title = data.get("title")
+        status = data.get("status", "todo")
+        
+        if not title or not isinstance(title, str) or len(title.strip()) == 0:
+            return jsonify({
+                "success": False,
+                "message": "Title is required and must be a non-empty string",
+                "code": "INVALID_TITLE"
+            }), 400
+        
+        # Validate status
+        try:
+            task_status = TaskStatus(status)
+        except ValueError:
+            valid_statuses = TaskStatus.get_all()
+            return jsonify({
+                "success": False,
+                "message": f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
+                "code": "INVALID_STATUS",
+                "valid_statuses": valid_statuses
+            }), 400
+        
+        # Create task
         task = Task(
-            title=data["title"].strip(),
+            title=title.strip(),
             description=data.get("description", ""),
             status=task_status,
             user_id=current_user_id
@@ -39,208 +58,372 @@ def create_task():
         db.session.add(task)
         db.session.commit()
         
+        # Invalidate cache
         invalidate_task_cache(user_id=current_user_id)
         
-        TASKS_CREATED_TOTAL.labels(user_id=current_user_id).inc()
+        return jsonify({
+            "success": True,
+            "message": "Task created successfully",
+            "data": task.to_dict()
+        }), 201
         
-        return jsonify(task.to_dict()), 201
-        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error in create_task: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Database error",
+            "code": "DATABASE_ERROR"
+        }), 500
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Create task error for user {current_user_id}: {str(e)}")
-        raise APIError("Failed to create task", 500, "TASK_CREATE_ERROR")
+        current_app.logger.error(f"Unexpected error in create_task: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Internal server error",
+            "code": "INTERNAL_ERROR"
+        }), 500
 
 @tasks_bp.route("/tasks", methods=["GET"])
 @jwt_required()
-@cache.cached(timeout=60, key_prefix=cache_key_prefix)
 def list_tasks():
-    current_user_id = get_jwt_identity()
-    
-    status = request.args.get("status")
-    limit = request.args.get("limit", type=int)
-    offset = request.args.get("offset", 0, type=int)
-    
-    query = Task.query.filter_by(user_id=current_user_id)
-    
-    if status:
-        try:
-            task_status = TaskStatus(status)
-            query = query.filter_by(status=task_status)
-        except ValueError:
-            raise APIError(f"Invalid status. Must be one of: {', '.join(TaskStatus.get_all())}", 
-                            400, "INVALID_STATUS")
-    
-    if limit:
+    """Get all tasks for current user"""
+    try:
+        current_user_id = get_jwt_identity()
+        
+        status = request.args.get("status")
+        limit = request.args.get("limit", type=int, default=100)
+        offset = request.args.get("offset", type=int, default=0)
+        
+        query = Task.query.filter_by(user_id=current_user_id)
+        
+        if status:
+            try:
+                task_status = TaskStatus(status)
+                query = query.filter_by(status=task_status)
+            except ValueError:
+                valid_statuses = TaskStatus.get_all()
+                return jsonify({
+                    "success": False,
+                    "message": f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
+                    "code": "INVALID_STATUS"
+                }), 400
+        
+        # Apply pagination
         if limit > 100:
             limit = 100
         elif limit < 1:
             limit = 1
-        query = query.limit(limit).offset(offset)
-    
-    query = query.order_by(Task.created_at.desc())
-    
-    tasks = query.all()
-    return jsonify([task.to_dict() for task in tasks]), 200
+        
+        query = query.order_by(Task.created_at.desc())
+        total = query.count()
+        tasks = query.limit(limit).offset(offset).all()
+        
+        # Calculate statistics
+        stats = {
+            "todo": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.TODO).count(),
+            "in_progress": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.IN_PROGRESS).count(),
+            "done": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.DONE).count(),
+            "total": total
+        }
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "tasks": [task.to_dict() for task in tasks],
+                "total": total,
+                "limit": limit,
+                "offset": offset,
+                "stats": stats
+            }
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in list_tasks: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Failed to fetch tasks",
+            "code": "FETCH_ERROR"
+        }), 500
 
 @tasks_bp.route("/tasks/<int:task_id>", methods=["GET"])
 @jwt_required()
 def get_task(task_id):
-    current_user_id = get_jwt_identity()
-    
-    task = Task.query.filter_by(id=task_id, user_id=current_user_id).first()
-    
-    if not task:
-        raise APIError("Task not found", 404, "TASK_NOT_FOUND")
-    
-    return jsonify(task.to_dict()), 200
+    """Get a specific task by ID"""
+    try:
+        current_user_id = get_jwt_identity()
+        
+        task = Task.query.filter_by(id=task_id, user_id=current_user_id).first()
+        
+        if not task:
+            return jsonify({
+                "success": False,
+                "message": "Task not found",
+                "code": "TASK_NOT_FOUND"
+            }), 404
+        
+        return jsonify({
+            "success": True,
+            "data": task.to_dict()
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in get_task: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Failed to fetch task",
+            "code": "FETCH_ERROR"
+        }), 500
 
 @tasks_bp.route("/tasks/<int:task_id>", methods=["PUT"])
 @jwt_required()
-def replace_task(task_id):
-    current_user_id = get_jwt_identity()
-    
-    task = Task.query.filter_by(id=task_id, user_id=current_user_id).first()
-    
-    if not task:
-        raise APIError("Task not found", 404, "TASK_NOT_FOUND")
-    
-    data = request.get_json()
-    if not data:
-        raise APIError("No data provided for update", 400, "NO_DATA")
-    
-    required_fields = ['title', 'status']
-    for field in required_fields:
-        if field not in data:
-            raise APIError(f"Missing required field: {field}", 400, "MISSING_FIELD")
-    
-    if not isinstance(data['title'], str) or len(data['title'].strip()) == 0:
-        raise APIError("Title must be a non-empty string", 400, "INVALID_TITLE")
-    
-    task_status = validate_task_status(data['status'])
-    
-    task.title = data['title'].strip()
-    task.description = data.get('description', '') or ''
-    task.status = task_status
-    
+def update_task(task_id):
+    """Update a task (full update)"""
     try:
-        db.session.commit()
+        current_user_id = get_jwt_identity()
         
+        task = Task.query.filter_by(id=task_id, user_id=current_user_id).first()
+        
+        if not task:
+            return jsonify({
+                "success": False,
+                "message": "Task not found",
+                "code": "TASK_NOT_FOUND"
+            }), 404
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "No data provided",
+                "code": "NO_DATA"
+            }), 400
+        
+        # Validate required fields for PUT
+        if "title" not in data:
+            return jsonify({
+                "success": False,
+                "message": "Title is required",
+                "code": "MISSING_TITLE"
+            }), 400
+        
+        if "status" not in data:
+            return jsonify({
+                "success": False,
+                "message": "Status is required",
+                "code": "MISSING_STATUS"
+            }), 400
+        
+        # Validate title
+        title = data.get("title")
+        if not isinstance(title, str) or len(title.strip()) == 0:
+            return jsonify({
+                "success": False,
+                "message": "Title must be a non-empty string",
+                "code": "INVALID_TITLE"
+            }), 400
+        
+        # Validate status
+        try:
+            task_status = TaskStatus(data["status"])
+        except ValueError:
+            valid_statuses = TaskStatus.get_all()
+            return jsonify({
+                "success": False,
+                "message": f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
+                "code": "INVALID_STATUS"
+            }), 400
+        
+        # Update task
+        task.title = title.strip()
+        task.description = data.get("description", "")
+        task.status = task_status
+        
+        db.session.commit()
         invalidate_task_cache(user_id=current_user_id, task_id=task_id)
         
-        TASKS_UPDATED_TOTAL.labels(
-            user_id=current_user_id,
-            status=data['status']
-        ).inc()
+        return jsonify({
+            "success": True,
+            "message": "Task updated successfully",
+            "data": task.to_dict()
+        }), 200
         
-        return jsonify(task.to_dict()), 200
-        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error in update_task: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Database error",
+            "code": "DATABASE_ERROR"
+        }), 500
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Replace task error for task {task_id}: {str(e)}")
-        raise APIError("Failed to update task", 500, "TASK_UPDATE_ERROR")
+        current_app.logger.error(f"Unexpected error in update_task: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Internal server error",
+            "code": "INTERNAL_ERROR"
+        }), 500
 
 @tasks_bp.route("/tasks/<int:task_id>", methods=["PATCH"])
 @jwt_required()
-def update_task(task_id):
-    current_user_id = get_jwt_identity()
-    
-    task = Task.query.filter_by(id=task_id, user_id=current_user_id).first()
-    
-    if not task:
-        raise APIError("Task not found", 404, "TASK_NOT_FOUND")
-    
-    data = request.get_json()
-    if not data:
-        raise APIError("No data provided for update", 400, "NO_DATA")
-    
-    updated = False
-    
-    if "title" in data and data["title"] is not None:
-        if not isinstance(data["title"], str) or len(data["title"].strip()) == 0:
-            raise APIError("Title must be a non-empty string", 400, "INVALID_TITLE")
-        task.title = data["title"].strip()
-        updated = True
-    
-    if "description" in data:
-        task.description = data["description"] if data["description"] is not None else ""
-        updated = True
-    
-    if "status" in data and data["status"] is not None:
-        task_status = validate_task_status(data["status"])
-        task.status = task_status
-        updated = True
-    
-    if not updated:
-        raise APIError("No valid fields to update", 400, "NO_VALID_FIELDS")
-    
+def patch_task(task_id):
+    """Partially update a task"""
     try:
-        db.session.commit()
+        current_user_id = get_jwt_identity()
         
+        task = Task.query.filter_by(id=task_id, user_id=current_user_id).first()
+        
+        if not task:
+            return jsonify({
+                "success": False,
+                "message": "Task not found",
+                "code": "TASK_NOT_FOUND"
+            }), 404
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "No data provided",
+                "code": "NO_DATA"
+            }), 400
+        
+        updated = False
+        
+        # Update title if provided
+        if "title" in data:
+            title = data["title"]
+            if not isinstance(title, str) or len(title.strip()) == 0:
+                return jsonify({
+                    "success": False,
+                    "message": "Title must be a non-empty string",
+                    "code": "INVALID_TITLE"
+                }), 400
+            task.title = title.strip()
+            updated = True
+        
+        # Update description if provided
+        if "description" in data:
+            task.description = data["description"] or ""
+            updated = True
+        
+        # Update status if provided
+        if "status" in data:
+            try:
+                task_status = TaskStatus(data["status"])
+                task.status = task_status
+                updated = True
+            except ValueError:
+                valid_statuses = TaskStatus.get_all()
+                return jsonify({
+                    "success": False,
+                    "message": f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
+                    "code": "INVALID_STATUS"
+                }), 400
+        
+        if not updated:
+            return jsonify({
+                "success": False,
+                "message": "No valid fields to update",
+                "code": "NO_VALID_FIELDS"
+            }), 400
+        
+        db.session.commit()
         invalidate_task_cache(user_id=current_user_id, task_id=task_id)
         
-        if "status" in data:
-            TASKS_UPDATED_TOTAL.labels(
-                user_id=current_user_id,
-                status=data["status"]
-            ).inc()
+        return jsonify({
+            "success": True,
+            "message": "Task updated successfully",
+            "data": task.to_dict()
+        }), 200
         
-        return jsonify(task.to_dict()), 200
-        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error in patch_task: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Database error",
+            "code": "DATABASE_ERROR"
+        }), 500
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Update task error for task {task_id}: {str(e)}")
-        raise APIError("Failed to update task", 500, "TASK_UPDATE_ERROR")
+        current_app.logger.error(f"Unexpected error in patch_task: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Internal server error",
+            "code": "INTERNAL_ERROR"
+        }), 500
 
 @tasks_bp.route("/tasks/<int:task_id>", methods=["DELETE"])
 @jwt_required()
 def delete_task(task_id):
-    current_user_id = get_jwt_identity()
-    
-    task = Task.query.filter_by(id=task_id, user_id=current_user_id).first()
-    
-    if not task:
-        raise APIError("Task not found", 404, "TASK_NOT_FOUND")
-    
+    """Delete a task"""
     try:
+        current_user_id = get_jwt_identity()
+        
+        task = Task.query.filter_by(id=task_id, user_id=current_user_id).first()
+        
+        if not task:
+            return jsonify({
+                "success": False,
+                "message": "Task not found",
+                "code": "TASK_NOT_FOUND"
+            }), 404
+        
         db.session.delete(task)
         db.session.commit()
         
         invalidate_task_cache(user_id=current_user_id, task_id=task_id)
         
-        return "", 204
+        return jsonify({
+            "success": True,
+            "message": "Task deleted successfully",
+            "data": {
+                "task_id": task_id
+            }
+        }), 200
         
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error in delete_task: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Database error",
+            "code": "DATABASE_ERROR"
+        }), 500
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Delete task error for task {task_id}: {str(e)}")
-        raise APIError("Failed to delete task", 500, "TASK_DELETE_ERROR")
+        current_app.logger.error(f"Unexpected error in delete_task: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Internal server error",
+            "code": "INTERNAL_ERROR"
+        }), 500
 
 @tasks_bp.route("/tasks/stats", methods=["GET"])
 @jwt_required()
-@cache.cached(timeout=300, key_prefix=cache_key_prefix)
-def get_stats():
-    current_user_id = get_jwt_identity()
-    
-    stats = {
-        "total": Task.query.filter_by(user_id=current_user_id).count(),
-        "todo": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.TODO).count(),
-        "in_progress": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.IN_PROGRESS).count(),
-        "done": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.DONE).count(),
-    }
-    
-    return jsonify(stats), 200
-
-@tasks_bp.route("/tasks/search", methods=["GET"])
-@jwt_required()
-def search_tasks():
-    current_user_id = get_jwt_identity()
-    query = request.args.get("query", "")
-    
-    if not query:
-        raise APIError("Search query required", 400, "MISSING_QUERY")
-    
-    tasks = Task.query.filter_by(user_id=current_user_id).filter(
-        (Task.title.ilike(f"%{query}%")) | 
-        (Task.description.ilike(f"%{query}%"))
-    ).order_by(Task.created_at.desc()).all()
-    
-    return jsonify([task.to_dict() for task in tasks]), 200
+def get_task_stats():
+    """Get task statistics for current user"""
+    try:
+        current_user_id = get_jwt_identity()
+        
+        stats = {
+            "todo": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.TODO).count(),
+            "in_progress": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.IN_PROGRESS).count(),
+            "done": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.DONE).count(),
+            "total": Task.query.filter_by(user_id=current_user_id).count()
+        }
+        
+        return jsonify({
+            "success": True,
+            "data": stats
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in get_task_stats: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Failed to get task statistics",
+            "code": "STATS_ERROR"
+        }), 500

@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation - Todo Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+.api-docs-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.api-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.api-header h1 {
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.api-header p {
+    font-size: 20px;
+    color: var(--gray);
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.api-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 40px;
+}
+
+@media (max-width: 992px) {
+    .api-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.api-sidebar {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.api-nav {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.api-nav ul {
+    list-style: none;
+}
+
+.api-nav li {
+    margin-bottom: 10px;
+}
+
+.api-nav a {
+    display: block;
+    padding: 10px 15px;
+    color: var(--dark);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.api-nav a:hover,
+.api-nav a.active {
+    background: var(--light);
+    color: var(--primary);
+}
+
+.api-content {
+    background: white;
+    border-radius: var(--radius);
+    padding: 40px;
+    box-shadow: var(--shadow);
+}
+
+.api-section {
+    margin-bottom: 60px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+}
+
+.api-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.api-section h2 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: var(--dark);
+}
+
+.api-section h3 {
+    font-size: 24px;
+    margin: 30px 0 15px;
+    color: var(--dark);
+}
+
+.api-section p {
+    color: var(--gray);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.api-endpoint {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 4px solid var(--primary);
+}
+
+.endpoint-method {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--primary);
+    color: white;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.endpoint-method.get { background: #10b981; }
+.endpoint-method.post { background: #3b82f6; }
+.endpoint-method.put { background: #f59e0b; }
+.endpoint-method.patch { background: #8b5cf6; }
+.endpoint-method.delete { background: #ef4444; }
+
+.endpoint-path {
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.endpoint-description {
+    margin-top: 10px;
+    color: var(--gray);
+}
+
+.code-block {
+    background: #1a202c;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    margin: 20px 0;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.code-block .keyword { color: #ff79c6; }
+.code-block .string { color: #f1fa8c; }
+.code-block .number { color: #bd93f9; }
+.code-block .comment { color: #6272a4; }
+.code-block .function { color: #50fa7b; }
+
+.api-info-box {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    border-radius: var(--radius);
+    padding: 30px;
+    margin: 40px 0;
+}
+
+.api-info-box h3 {
+    color: white;
+    margin-bottom: 15px;
+}
+
+.api-info-box ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.api-info-box li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.api-info-box li:before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #ffd166;
+}
+
+.response-example {
+    background: #2d3748;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    overflow-x: auto;
+}
+
+.response-example pre {
+    margin: 0;
+    color: #e2e8f0;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.param-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.param-table th,
+.param-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.param-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.param-table td {
+    color: var(--gray);
+}
+
+.param-required {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--danger);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 5px;
+}
+
+.param-optional {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--warning);
+    color: var(--dark);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 5px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="api-docs-container">
+    <div class="api-header">
+        <h1><i class="fas fa-code"></i> API Documentation</h1>
+        <p>Complete REST API reference for Todo Manager. Build your own integrations and applications.</p>
+    </div>
+    
+    <div class="api-grid">
+        <div class="api-sidebar">
+            <nav class="api-nav">
+                <ul>
+                    <li><a href="#authentication" class="active">Authentication</a></li>
+                    <li><a href="#users">Users</a></li>
+                    <li><a href="#tasks">Tasks</a></li>
+                    <li><a href="#status-codes">Status Codes</a></li>
+                    <li><a href="#rate-limiting">Rate Limiting</a></li>
+                    <li><a href="#examples">Examples</a></li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="api-content">
+            <section id="overview" class="api-section">
+                <h2>API Overview</h2>
+                <p>Todo Manager provides a RESTful JSON API for programmatic access to your tasks and user data. All API endpoints are prefixed with <code>/api</code>.</p>
+                
+                <div class="api-info-box">
+                    <h3>Base URL</h3>
+                    <p><strong>https://your-domain.com/api</strong> or <strong>http://localhost:8000/api</strong> for local development</p>
+                    
+                    <h3 style="margin-top: 20px;">Quick Start</h3>
+                    <ul>
+                        <li>Register a user account</li>
+                        <li>Login to get your JWT token</li>
+                        <li>Include token in Authorization header</li>
+                        <li>Start making API requests</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <section id="authentication" class="api-section">
+                <h2>Authentication</h2>
+                <p>All API endpoints (except registration and login) require JWT authentication. Include the token in the Authorization header:</p>
+                
+                <div class="code-block">
+<span class="comment">// HTTP Header</span>
+Authorization: Bearer <span class="string">your_jwt_token_here</span>
+                </div>
+                
+                <div class="api-endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-method post">POST</span>
+                        <span class="endpoint-path">/auth/register</span>
+                    </div>
+                    <div class="endpoint-description">Register a new user account</div>
+                </div>
+                
+                <h3>Request Body</h3>
+                <table class="param-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>username</td>
+                            <td>string</td>
+                            <td><span class="param-required">Required</span></td>
+                            <td>3-80 characters, letters and numbers only</td>
+                        </tr>
+                        <tr>
+                            <td>password</td>
+                            <td>string</td>
+                            <td><span class="param-required">Required</span></td>
+                            <td>Minimum 6 characters</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="response-example">
+                    <pre>{
+  "message": "User registered successfully",
+  "user_id": 1,
+  "username": "john_doe"
+}</pre>
+                </div>
+                
+                <div class="api-endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-method post">POST</span>
+                        <span class="endpoint-path">/auth/login</span>
+                    </div>
+                    <div class="endpoint-description">Authenticate and receive JWT token</div>
+                </div>
+                
+                <div class="response-example">
+                    <pre>{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "token_type": "bearer",
+  "user": {
+    "id": 1,
+    "username": "john_doe",
+    "created_at": "2024-01-01T00:00:00Z"
+  }
+}</pre>
+                </div>
+            </section>
+            
+            <section id="tasks" class="api-section">
+                <h2>Tasks</h2>
+                <p>Manage your tasks through the API. All task endpoints require authentication.</p>
+                
+                <div class="api-endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-method get">GET</span>
+                        <span class="endpoint-path">/tasks</span>
+                    </div>
+                    <div class="endpoint-description">Get all tasks for the authenticated user</div>
+                </div>
+                
+                <h3>Query Parameters</h3>
+                <table class="param-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>status</td>
+                            <td>string</td>
+                            <td><span class="param-optional">Optional</span></td>
+                            <td>Filter by status (todo, in_progress, done)</td>
+                        </tr>
+                        <tr>
+                            <td>limit</td>
+                            <td>integer</td>
+                            <td><span class="param-optional">Optional</span></td>
+                            <td>Number of tasks to return (1-100)</td>
+                        </tr>
+                        <tr>
+                            <td>offset</td>
+                            <td>integer</td>
+                            <td><span class="param-optional">Optional</span></td>
+                            <td>Number of tasks to skip</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="api-endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-method post">POST</span>
+                        <span class="endpoint-path">/tasks</span>
+                    </div>
+                    <div class="endpoint-description">Create a new task</div>
+                </div>
+                
+                <h3>Request Body</h3>
+                <div class="code-block">
+{
+  <span class="string">"title"</span>: <span class="string">"Complete project documentation"</span>,
+  <span class="string">"description"</span>: <span class="string">"Write comprehensive docs for the API"</span>,
+  <span class="string">"status"</span>: <span class="string">"in_progress"</span>
+}
+                </div>
+                
+                <h3>Response</h3>
+                <div class="code-block">
+{
+  <span class="string">"id"</span>: <span class="number">1</span>,
+  <span class="string">"title"</span>: <span class="string">"Complete project documentation"</span>,
+  <span class="string">"description"</span>: <span class="string">"Write comprehensive docs for the API"</span>,
+  <span class="string">"status"</span>: <span class="string">"in_progress"</span>,
+  <span class="string">"user_id"</span>: <span class="number">1</span>,
+  <span class="string">"created_at"</span>: <span class="string">"2024-01-01T10:30:00Z"</span>,
+  <span class="string">"updated_at"</span>: <span class="string">"2024-01-01T10:30:00Z"</span>
+}
+                </div>
+            </section>
+            
+            <section id="examples" class="api-section">
+                <h2>Code Examples</h2>
+                
+                <h3>JavaScript (Fetch API)</h3>
+                <div class="code-block">
+<span class="comment">// Create a new task</span>
+<span class="keyword">async function</span> <span class="function">createTask</span>(title, description, status) {
+  <span class="keyword">const</span> token = localStorage.<span class="function">getItem</span>(<span class="string">'jwt_token'</span>);
+  
+  <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">'/api/tasks'</span>, {
+    <span class="string">method</span>: <span class="string">'POST'</span>,
+    <span class="string">headers</span>: {
+      <span class="string">'Authorization'</span>: <span class="string">`Bearer ${token}`</span>,
+      <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span>
+    },
+    <span class="string">body</span>: <span class="function">JSON</span>.<span class="function">stringify</span>({ title, description, status })
+  });
+  
+  <span class="keyword">return await</span> response.<span class="function">json</span>();
+}
+
+<span class="comment">// Get all tasks</span>
+<span class="keyword">async function</span> <span class="function">getTasks</span>() {
+  <span class="keyword">const</span> token = localStorage.<span class="function">getItem</span>(<span class="string">'jwt_token'</span>);
+  
+  <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">'/api/tasks'</span>, {
+    <span class="string">headers</span>: {
+      <span class="string">'Authorization'</span>: <span class="string">`Bearer ${token}`</span>
+    }
+  });
+  
+  <span class="keyword">return await</span> response.<span class="function">json</span>();
+}
+                </div>
+                
+                <h3>Python (Requests)</h3>
+                <div class="code-block">
+<span class="keyword">import</span> requests
+
+<span class="keyword">class</span> TodoManagerAPI:
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, base_url, token=None):
+        <span class="keyword">self</span>.base_url = base_url
+        <span class="keyword">self</span>.token = token
+        <span class="keyword">self</span>.headers = {
+            <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span>
+        }
+        <span class="keyword">if</span> token:
+            <span class="keyword">self</span>.headers[<span class="string">'Authorization'</span>] = <span class="string">f'Bearer {token}'</span>
+    
+    <span class="keyword">def</span> <span class="function">create_task</span>(<span class="keyword">self</span>, title, description=<span class="string">""</span>, status=<span class="string">"todo"</span>):
+        url = <span class="string">f"<span class="keyword">{self</span>.base_url}/tasks"</span>
+        data = {
+            <span class="string">"title"</span>: title,
+            <span class="string">"description"</span>: description,
+            <span class="string">"status"</span>: status
+        }
+        response = requests.post(url, json=data, headers=<span class="keyword">self</span>.headers)
+        <span class="keyword">return</span> response.json()
+    
+    <span class="keyword">def</span> <span class="function">get_tasks</span>(<span class="keyword">self</span>, status=None, limit=None):
+        url = <span class="string">f"<span class="keyword">{self</span>.base_url}/tasks"</span>
+        params = {}
+        <span class="keyword">if</span> status:
+            params[<span class="string">'status'</span>] = status
+        <span class="keyword">if</span> limit:
+            params[<span class="string">'limit'</span>] = limit
+        
+        response = requests.get(url, params=params, headers=<span class="keyword">self</span>.headers)
+        <span class="keyword">return</span> response.json()
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script>
+// Smooth scrolling for anchor links
+document.querySelectorAll('.api-nav a').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+        
+        if (targetElement) {
+            // Update active nav item
+            document.querySelectorAll('.api-nav a').forEach(a => a.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Scroll to section
+            window.scrollTo({
+                top: targetElement.offsetTop - 100,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
+// Update active nav based on scroll
+window.addEventListener('scroll', function() {
+    const sections = document.querySelectorAll('.api-section');
+    const navLinks = document.querySelectorAll('.api-nav a');
+    
+    let currentSection = '';
+    
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop - 150;
+        if (window.scrollY >= sectionTop) {
+            currentSection = '#' + section.id;
+        }
+    });
+    
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === currentSection) {
+            link.classList.add('active');
+        }
+    });
+});
+
+// Copy code blocks on click
+document.querySelectorAll('.code-block').forEach(block => {
+    block.addEventListener('click', function() {
+        const text = this.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const original = this.textContent;
+            this.textContent = 'Copied to clipboard!';
+            
+            setTimeout(() => {
+                this.textContent = original;
+            }, 2000);
+        });
+    });
+});
+</script>
+{% endblock %}

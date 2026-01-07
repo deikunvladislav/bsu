@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Todo App{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1><i class="fas fa-user-circle"></i> Profile</h1>
+        <div class="user-info">
+            <div class="avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+                <h2>{{ current_user.username }}</h2>
+                <p>Member since {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="total-tasks-count">0</h3>
+                <p>Total Tasks</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-list-ul"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="todo-count">0</h3>
+                <p>To Do</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-spinner"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="progress-count">0</h3>
+                <p>In Progress</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="done-count">0</h3>
+                <p>Completed</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-actions">
+        <div class="action-section">
+            <h3><i class="fas fa-key"></i> Change Password</h3>
+            <form id="change-password-form" class="profile-form">
+                <div class="form-group">
+                    <label for="current-password">Current Password</label>
+                    <input type="password" id="current-password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" id="new-password" class="form-control" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm New Password</label>
+                    <input type="password" id="confirm-password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Change Password
+                </button>
+            </form>
+        </div>
+
+        <div class="action-section danger-zone">
+            <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+            
+            <div class="danger-action">
+                <h4>Delete All Tasks</h4>
+                <p>Permanently delete all your tasks. This action cannot be undone.</p>
+                <button id="delete-all-tasks-btn" class="btn btn-warning">
+                    <i class="fas fa-trash"></i> Delete All Tasks
+                </button>
+            </div>
+            
+            <div class="danger-action">
+                <h4>Delete Account</h4>
+                <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+                <button id="delete-account-btn" class="btn btn-danger">
+                    <i class="fas fa-user-slash"></i> Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadProfileStats();
+    setupProfileForms();
+});
+
+function loadProfileStats() {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) return;
+    
+    fetch('/api/tasks/stats', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const stats = result.data;
+            document.getElementById('total-tasks-count').textContent = stats.total || 0;
+            document.getElementById('todo-count').textContent = stats.todo || 0;
+            document.getElementById('progress-count').textContent = stats.in_progress || 0;
+            document.getElementById('done-count').textContent = stats.done || 0;
+        }
+    })
+    .catch(error => {
+        console.error('Failed to load stats:', error);
+    });
+}
+
+function setupProfileForms() {
+    // Change password form
+    const changePasswordForm = document.getElementById('change-password-form');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (newPassword !== confirmPassword) {
+                showToast('New passwords do not match', 'warning', 'Validation Error');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showToast('New password must be at least 6 characters', 'warning', 'Validation Error');
+                return;
+            }
+            
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                showToast('Please login to continue', 'warning', 'Authentication Required');
+                window.location.href = '/login';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        old_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast('Password changed successfully!', 'success', 'Success');
+                    changePasswordForm.reset();
+                } else {
+                    showToast('Error: ' + result.message, 'error', 'Error');
+                }
+            } catch (error) {
+                console.error('Error changing password:', error);
+                showToast('Failed to change password', 'error', 'Error');
+            }
+        });
+    }
+    
+    // Delete all tasks button
+    const deleteAllTasksBtn = document.getElementById('delete-all-tasks-btn');
+    if (deleteAllTasksBtn) {
+        deleteAllTasksBtn.addEventListener('click', async function() {
+            if (!confirm('Are you sure you want to delete ALL tasks? This action cannot be undone.')) {
+                return;
+            }
+            
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                showToast('Please login to continue', 'warning', 'Authentication Required');
+                window.location.href = '/login';
+                return;
+            }
+            
+            try {
+                // First, get all tasks
+                const tasksResponse = await fetch('/api/tasks', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const tasksResult = await tasksResponse.json();
+                
+                if (!tasksResult.success) {
+                    showToast('Failed to get tasks', 'error', 'Error');
+                    return;
+                }
+                
+                // Delete each task
+                const tasks = tasksResult.data.tasks || [];
+                let deletedCount = 0;
+                
+                for (const task of tasks) {
+                    const deleteResponse = await fetch(`/api/tasks/${task.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (deleteResponse.ok) {
+                        deletedCount++;
+                    }
+                }
+                
+                showToast(`Successfully deleted ${deletedCount} tasks!`, 'success', 'Success');
+                loadProfileStats();
+                
+            } catch (error) {
+                console.error('Error deleting tasks:', error);
+                showToast('Failed to delete tasks', 'error', 'Error');
+            }
+        });
+    }
+    
+    // Delete account button
+    const deleteAccountBtn = document.getElementById('delete-account-btn');
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', async function() {
+            if (!confirm('Are you sure you want to delete your account? This will permanently delete ALL your data and cannot be undone.')) {
+                return;
+            }
+            
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                showToast('Please login to continue', 'warning', 'Authentication Required');
+                window.location.href = '/login';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/delete-account', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    localStorage.removeItem('jwt_token');
+                    localStorage.removeItem('current_user');
+                    showToast('Account deleted successfully', 'success', 'Success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    const errorData = await response.json();
+                    showToast('Error: ' + errorData.message, 'error', 'Error');
+                }
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                showToast('Failed to delete account', 'error', 'Error');
+            }
+        });
+    }
+}
+</script>
+
+<style>
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: white;
+}
+
+.user-details h2 {
+    margin: 0;
+    color: #212529;
+}
+
+.user-details p {
+    color: #6c757d;
+    margin: 5px 0 0 0;
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #667eea;
+}
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 28px;
+    color: #212529;
+}
+
+.stat-info p {
+    margin: 5px 0 0 0;
+    color: #6c757d;
+}
+
+.profile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+@media (max-width: 768px) {
+    .profile-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+.action-section {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.action-section h3 {
+    margin-top: 0;
+    color: #212529;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-form {
+    margin-top: 20px;
+}
+
+.danger-zone {
+    border: 2px solid #ff6b6b;
+}
+
+.danger-action {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.danger-action:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.danger-action h4 {
+    margin: 0 0 10px 0;
+    color: #495057;
+}
+
+.danger-action p {
+    color: #6c757d;
+    margin: 0 0 15px 0;
+    font-size: 14px;
+}
+
+.btn-warning {
+    background: #ffd166;
+    color: #212529;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-warning:hover {
+    background: #ffc145;
+}
+
+.btn-danger {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-danger:hover {
+    background: #ff5252;
+}
+</style>
+{% endblock %}

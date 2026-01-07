@@ -1,0 +1,356 @@
+/* Dashboard specific styles */
+.dashboard {
+    padding: 2rem 0;
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.welcome-message {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+}
+
+.welcome-message span {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+}
+
+.stat-todo .stat-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.stat-progress .stat-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.stat-done .stat-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.stat-total .stat-icon {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+.stat-content h3 {
+    font-size: 2.5rem;
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-content p {
+    color: var(--secondary-color);
+    margin: 0;
+}
+
+/* Dashboard actions */
+.dashboard-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.quick-actions, .recent-tasks {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.quick-actions h3, .recent-tasks h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Task list */
+.tasks-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    gap: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.task-item:hover {
+    background: var(--light-color);
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.task-content {
+    flex: 1;
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.task-title {
+    font-weight: 500;
+    margin: 0;
+}
+
+.task-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-todo {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.status-in_progress {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.status-done {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.task-description {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+.task-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+}
+
+.task-meta i {
+    margin-right: 4px;
+}
+
+.task-actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.task-item:hover .task-actions {
+    opacity: 1;
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--secondary-color);
+    padding: 0.25rem;
+}
+
+.modal-close:hover {
+    color: var(--dark-color);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* Tasks page specific */
+.tasks-page {
+    padding: 2rem 0;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.search-box {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tasks-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.tasks-container {
+    min-height: 400px;
+}
+
+.tasks-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1rem;
+}
+
+#page-info {
+    font-weight: 500;
+}
+
+/* Status colors */
+.task-todo { border-left: 4px solid var(--danger-color); }
+.task-in_progress { border-left: 4px solid var(--warning-color); }
+.task-done { border-left: 4px solid var(--success-color); }

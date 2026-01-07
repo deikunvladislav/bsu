@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Todo Manager - Organize Your Life{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --success: #06d6a0;
+            --warning: #ffd166;
+            --danger: #ef476f;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --border: #e9ecef;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Modern Navigation */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--primary);
+        }
+        
+        .nav-brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .nav-link {
+            padding: 10px 20px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-link:hover {
+            background: var(--light);
+            color: var(--primary);
+        }
+        
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+        
+        .nav-link-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .nav-link-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--light);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+        
+        .api-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .api-status.offline {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        /* Mobile Navigation */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--dark);
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-toggle {
+                display: block;
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+                display: none;
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            .nav-link {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* Flash Messages */
+        .flash-messages {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+        
+        .flash-message {
+            background: white;
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+            animation: slideInRight 0.3s ease;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--dark);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--light);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="{{ url_for('frontend.index') }}" class="nav-brand">
+                    <div class="nav-brand-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <span>Todo Manager</span>
+                </a>
+                
+                <button class="nav-toggle" id="navToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="nav-links" id="navLinks">
+                    <a href="{{ url_for('frontend.index') }}" class="nav-link {% if request.endpoint == 'frontend.index' %}active{% endif %}">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    
+                    {% if current_user %}
+                    <a href="{{ url_for('frontend.dashboard') }}" class="nav-link {% if request.endpoint == 'frontend.dashboard' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('frontend.tasks') }}" class="nav-link {% if request.endpoint == 'frontend.tasks' %}active{% endif %}">
+                        <i class="fas fa-list-check"></i> Tasks
+                    </a>
+                    <a href="{{ url_for('frontend.profile') }}" class="nav-link {% if request.endpoint == 'frontend.profile' %}active{% endif %}">
+                        <i class="fas fa-user"></i> Profile
+                    </a>
+                    <a href="{{ url_for('frontend.api_docs') }}" class="nav-link {% if request.endpoint == 'frontend.api_docs' %}active{% endif %}">
+                        <i class="fas fa-code"></i> API
+                    </a>
+                    <a href="#" id="logout-btn" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('frontend.login') }}" class="nav-link {% if request.endpoint == 'frontend.login' %}active{% endif %}">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="{{ url_for('frontend.register') }}" class="nav-link nav-link-btn {% if request.endpoint == 'frontend.register' %}active{% endif %}">
+                        <i class="fas fa-user-plus"></i> Sign Up Free
+                    </a>
+                    {% endif %}
+                    
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for message in messages %}
+                            <div class="flash-message">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Todo Manager</h3>
+                    <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.6;">
+                        The ultimate productivity tool for organizing your tasks and boosting your efficiency.
+                    </p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('frontend.index') }}">Home</a></li>
+                        <li><a href="{{ url_for('frontend.dashboard') }}">Dashboard</a></li>
+                        <li><a href="{{ url_for('frontend.tasks') }}">Tasks</a></li>
+                        <li><a href="{{ url_for('frontend.profile') }}">Profile</a></li>
+                        <li><a href="{{ url_for('frontend.api_docs') }}">API Documentation</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Account</h3>
+                    <ul class="footer-links">
+                        {% if current_user %}
+                        <li><a href="{{ url_for('frontend.profile') }}">Profile</a></li>
+                        <li><a href="{{ url_for('frontend.dashboard') }}">Dashboard</a></li>
+                        <li><a href="#" id="footer-logout">Logout</a></li>
+                        {% else %}
+                        <li><a href="{{ url_for('frontend.login') }}">Login</a></li>
+                        <li><a href="{{ url_for('frontend.register') }}">Register</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fab fa-github"></i> GitHub</a></li>
+                        <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
+                        <li><a href="#"><i class="fab fa-discord"></i> Discord</a></li>
+                        <li><a href="mailto:support@todomanager.com"><i class="fas fa-envelope"></i> Email</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2024 Todo Manager. All rights reserved. | API Status: <span id="api-status" class="api-status">Checking...</span></p>
+                <p style="margin-top: 10px; font-size: 12px;">Built with Flask & ❤️ | Version 1.0.0</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+    <script>
+        // Mobile navigation toggle
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+            });
+        }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!navToggle.contains(e.target) && !navLinks.contains(e.target)) {
+                navLinks.classList.remove('active');
+            }
+        });
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle?.querySelector('i');
+        
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                if (themeIcon) {
+                    themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+            });
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            if (themeIcon) {
+                themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        }
+        
+        // Logout buttons
+        const logoutButtons = document.querySelectorAll('#logout-btn, #footer-logout');
+        logoutButtons.forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    logout();
+                });
+            }
+        });
+        
+        async function logout() {
+            const token = localStorage.getItem('jwt_token');
+            
+            try {
+                if (token) {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                // Clear local storage
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('current_user');
+                
+                // Redirect to logout page
+                window.location.href = '/logout';
+            }
+        }
+        
+        // Check API status
+        async function checkApiStatus() {
+            try {
+                const response = await fetch('/api/health/live');
+                const statusElement = document.getElementById('api-status');
+                
+                if (response.ok) {
+                    statusElement.textContent = 'Online';
+                    statusElement.classList.remove('offline');
+                } else {
+                    statusElement.textContent = 'Offline';
+                    statusElement.classList.add('offline');
+                }
+            } catch (error) {
+                const statusElement = document.getElementById('api-status');
+                statusElement.textContent = 'Offline';
+                statusElement.classList.add('offline');
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkApiStatus();
+            // Check every 30 seconds
+            setInterval(checkApiStatus, 30000);
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+</body>
+</html>

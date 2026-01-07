@@ -1,8 +1,7 @@
 from __future__ import annotations
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, session
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from ..models import db, User, Task
-from ..extensions import USERS_REGISTERED_TOTAL
 from ..utils import APIError, validate_password, validate_username, MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, MIN_PASSWORD_LENGTH
 
 auth_bp = Blueprint("auth", __name__)
@@ -37,8 +36,6 @@ def register():
     try:
         db.session.add(user)
         db.session.commit()
-        
-        USERS_REGISTERED_TOTAL.inc()
         
         return jsonify({
             "message": "User registered successfully",
@@ -80,14 +77,24 @@ def login():
             }
         )
         
+        # Set user_id in session for web interface
+        session['user_id'] = user.id
+        
         return jsonify({
             "access_token": access_token,
             "token_type": "bearer",
             "user": user.to_dict()
         }), 200
+        
     except Exception as e:
         current_app.logger.error(f"Token creation error: {str(e)}")
         raise APIError("Login failed", 500, "LOGIN_ERROR")
+
+@auth_bp.route("/logout", methods=["POST"])
+def logout_api():
+    """API logout endpoint"""
+    session.pop('user_id', None)
+    return jsonify({"message": "Logged out successfully"}), 200
 
 @auth_bp.route("/profile", methods=["GET"])
 @jwt_required()
@@ -124,38 +131,46 @@ def change_password():
         raise APIError("User not found", 404, "USER_NOT_FOUND")
     
     if not user.check_password(old_password):
-        raise APIError("Invalid old password", 401, "INVALID_PASSWORD")
-    
-    user.set_password(new_password)
+        raise APIError("Old password is incorrect", 400, "INCORRECT_OLD_PASSWORD")
     
     try:
-        db.session.commit()
-        return jsonify({"message": "Password changed successfully"}), 200
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Password change error for user {user.id}: {str(e)}")
-        raise APIError("Failed to change password", 500, "PASSWORD_CHANGE_ERROR")
-
-@auth_bp.route("/delete-account", methods=["DELETE"])
-@jwt_required()
-def delete_account():
-    current_user_id = get_jwt_identity()
-    
-    user = User.query.get(current_user_id)
-    if not user:
-        raise APIError("User not found", 404, "USER_NOT_FOUND")
-    
-    try:
-        Task.query.filter_by(user_id=current_user_id).delete()
-        db.session.delete(user)
+        user.set_password(new_password)
         db.session.commit()
         
         return jsonify({
-            "message": "Account deleted successfully",
-            "user_id": current_user_id
+            "message": "Password changed successfully"
         }), 200
         
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Account deletion error for user {current_user_id}: {str(e)}")
+        current_app.logger.error(f"Password change error: {str(e)}")
+        raise APIError("Failed to change password", 500, "PASSWORD_CHANGE_ERROR")
+
+@auth_bp.route("/delete-account", methods=["DELETE"])
+@jwt_required()
+def delete_user_account():
+    """Delete user account"""
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    
+    if not user:
+        raise APIError("User not found", 404, "USER_NOT_FOUND")
+    
+    try:
+        # Delete all user's tasks first
+        Task.query.filter_by(user_id=current_user_id).delete()
+        # Delete user
+        db.session.delete(user)
+        db.session.commit()
+        
+        # Clear session
+        session.pop('user_id', None)
+        
+        return jsonify({
+            "message": "Account deleted successfully"
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error deleting account: {str(e)}")
         raise APIError("Failed to delete account", 500, "ACCOUNT_DELETE_ERROR")

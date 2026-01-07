@@ -186,7 +186,8 @@ function setupProfileForms() {
                     showToast('Password changed successfully!', 'success', 'Success');
                     changePasswordForm.reset();
                 } else {
-                    showToast('Error: ' + result.message, 'error', 'Error');
+                    const errorMsg = result.message || 'Failed to change password';
+                    showToast(`Error: ${errorMsg}`, 'error', 'Error');
                 }
             } catch (error) {
                 console.error('Error changing password:', error);
@@ -202,12 +203,6 @@ function setupProfileForms() {
     const deleteAllTasksBtn = document.getElementById('delete-all-tasks-btn');
     if (deleteAllTasksBtn) {
         deleteAllTasksBtn.addEventListener('click', async function() {
-            const confirmed = await showConfirm(
-                'Are you sure you want to delete ALL tasks? This action cannot be undone.',
-                'Delete All Tasks'
-            );
-            if (!confirmed) return;
-            
             const token = localStorage.getItem('jwt_token');
             if (!token) {
                 showToast('Please login to continue', 'warning', 'Authentication Required');
@@ -219,53 +214,22 @@ function setupProfileForms() {
             this.disabled = true;
             
             try {
-                // First, get all tasks
-                const tasksResponse = await fetch('/api/tasks?limit=1000', {
+                const response = await fetch('/api/tasks/delete-all', {
+                    method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
                 
-                const tasksResult = await tasksResponse.json();
+                const result = await response.json();
                 
-                if (!tasksResult.success) {
-                    showToast('Failed to get tasks', 'error', 'Error');
-                    this.innerHTML = '<i class="fas fa-trash"></i> Delete All Tasks';
-                    this.disabled = false;
-                    return;
-                }
-                
-                // Delete each task
-                const tasks = tasksResult.data.tasks || [];
-                let deletedCount = 0;
-                let errorCount = 0;
-                
-                for (const task of tasks) {
-                    try {
-                        const deleteResponse = await fetch(`/api/tasks/${task.id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                        
-                        if (deleteResponse.ok) {
-                            deletedCount++;
-                        } else {
-                            errorCount++;
-                        }
-                    } catch (error) {
-                        errorCount++;
-                    }
-                }
-                
-                if (errorCount > 0) {
-                    showToast(`Deleted ${deletedCount} tasks, but ${errorCount} failed`, 'warning', 'Partial Success');
+                if (response.ok && result.success) {
+                    showToast(`Successfully deleted ${result.data.deleted_count} tasks!`, 'success', 'Success');
+                    loadProfileStats();
                 } else {
-                    showToast(`Successfully deleted ${deletedCount} tasks!`, 'success', 'Success');
+                    const errorMsg = result.message || 'Failed to delete tasks';
+                    showToast(`Error: ${errorMsg}`, 'error', 'Error');
                 }
-                loadProfileStats();
-                
             } catch (error) {
                 console.error('Error deleting tasks:', error);
                 showToast('Failed to delete tasks', 'error', 'Error');
@@ -280,12 +244,6 @@ function setupProfileForms() {
     const deleteAccountBtn = document.getElementById('delete-account-btn');
     if (deleteAccountBtn) {
         deleteAccountBtn.addEventListener('click', async function() {
-            const confirmed = await showConfirm(
-                'Are you sure you want to delete your account? This will permanently delete ALL your data and cannot be undone.',
-                'Delete Account'
-            );
-            if (!confirmed) return;
-            
             const token = localStorage.getItem('jwt_token');
             if (!token) {
                 showToast('Please login to continue', 'warning', 'Authentication Required');
@@ -304,7 +262,9 @@ function setupProfileForms() {
                     }
                 });
                 
-                if (response.ok) {
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
                     localStorage.removeItem('jwt_token');
                     localStorage.removeItem('current_user');
                     showToast('Account deleted successfully', 'success', 'Success');
@@ -312,8 +272,8 @@ function setupProfileForms() {
                         window.location.href = '/';
                     }, 1500);
                 } else {
-                    const errorData = await response.json();
-                    showToast('Error: ' + errorData.message, 'error', 'Error');
+                    const errorMsg = result.message || 'Failed to delete account';
+                    showToast(`Error: ${errorMsg}`, 'error', 'Error');
                     this.innerHTML = '<i class="fas fa-user-slash"></i> Delete Account';
                     this.disabled = false;
                 }

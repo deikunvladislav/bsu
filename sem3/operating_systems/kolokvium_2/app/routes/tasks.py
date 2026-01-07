@@ -95,6 +95,10 @@ def list_tasks():
         limit = request.args.get("limit", type=int, default=100)
         offset = request.args.get("offset", type=int, default=0)
         
+        # Sorting parameters
+        sort_by = request.args.get("sort_by", "created_at")
+        sort_order = request.args.get("sort_order", "desc")
+        
         query = Task.query.filter_by(user_id=current_user_id)
         
         if status:
@@ -109,13 +113,31 @@ def list_tasks():
                     "code": "INVALID_STATUS"
                 }), 400
         
+        # Apply sorting
+        if sort_by == "title":
+            if sort_order == "asc":
+                query = query.order_by(Task.title.asc())
+            else:
+                query = query.order_by(Task.title.desc())
+        elif sort_by == "status":
+            if sort_order == "asc":
+                query = query.order_by(Task.status.asc())
+            else:
+                query = query.order_by(Task.status.desc())
+        elif sort_by == "created_at":
+            if sort_order == "asc":
+                query = query.order_by(Task.created_at.asc())
+            else:
+                query = query.order_by(Task.created_at.desc())
+        else:
+            query = query.order_by(Task.created_at.desc())
+        
         # Apply pagination
         if limit > 100:
             limit = 100
         elif limit < 1:
             limit = 1
         
-        query = query.order_by(Task.created_at.desc())
         total = query.count()
         tasks = query.limit(limit).offset(offset).all()
         
@@ -134,7 +156,9 @@ def list_tasks():
                 "total": total,
                 "limit": limit,
                 "offset": offset,
-                "stats": stats
+                "stats": stats,
+                "sort_by": sort_by,
+                "sort_order": sort_order
             }
         }), 200
         
@@ -426,4 +450,55 @@ def get_task_stats():
             "success": False,
             "message": "Failed to get task statistics",
             "code": "STATS_ERROR"
+        }), 500
+
+@tasks_bp.route("/tasks/delete-all", methods=["DELETE"])
+@jwt_required()
+def delete_all_tasks():
+    """Delete all tasks for current user"""
+    try:
+        current_user_id = get_jwt_identity()
+        
+        # Get count before deletion
+        task_count = Task.query.filter_by(user_id=current_user_id).count()
+        
+        if task_count == 0:
+            return jsonify({
+                "success": True,
+                "message": "No tasks to delete",
+                "data": {
+                    "deleted_count": 0
+                }
+            }), 200
+        
+        # Delete all tasks for the user
+        deleted_count = Task.query.filter_by(user_id=current_user_id).delete()
+        db.session.commit()
+        
+        # Invalidate cache
+        invalidate_task_cache(user_id=current_user_id)
+        
+        return jsonify({
+            "success": True,
+            "message": f"Successfully deleted {deleted_count} tasks",
+            "data": {
+                "deleted_count": deleted_count
+            }
+        }), 200
+        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error in delete_all_tasks: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Database error",
+            "code": "DATABASE_ERROR"
+        }), 500
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Unexpected error in delete_all_tasks: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Internal server error",
+            "code": "INTERNAL_ERROR"
         }), 500

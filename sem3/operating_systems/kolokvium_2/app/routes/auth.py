@@ -167,6 +167,7 @@ def delete_user_account():
         session.pop('user_id', None)
         
         return jsonify({
+            "success": True,
             "message": "Account deleted successfully"
         }), 200
         

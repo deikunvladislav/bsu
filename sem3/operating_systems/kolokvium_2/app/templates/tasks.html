@@ -105,11 +105,15 @@
 
 <script>
 // Tasks page JavaScript
+let currentPage = 1;
+let currentFilter = 'all';
+let currentSearch = '';
+let allTasks = [];
+let filteredTasks = [];
+const tasksPerPage = 10;
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Tasks page loaded');
-    
-    // Initialize
-    loadTasks();
+    loadAllTasks();
     setupEventListeners();
 });
 
@@ -156,7 +160,7 @@ function setupEventListeners() {
             this.classList.add('active');
             currentFilter = this.dataset.filter;
             currentPage = 1;
-            loadTasks();
+            applyFiltersAndRender();
         });
     });
     
@@ -168,28 +172,26 @@ function setupEventListeners() {
         searchBtn.addEventListener('click', function() {
             currentSearch = searchInput.value.trim();
             currentPage = 1;
-            loadTasks();
+            applyFiltersAndRender();
         });
     }
     
     if (searchInput) {
-        // Search on Enter key
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 currentSearch = this.value.trim();
                 currentPage = 1;
-                loadTasks();
+                applyFiltersAndRender();
             }
         });
         
-        // Search on input change with debounce
         let searchTimeout;
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 currentSearch = this.value.trim();
                 currentPage = 1;
-                loadTasks();
+                applyFiltersAndRender();
             }, 500);
         });
     }
@@ -199,7 +201,7 @@ function setupEventListeners() {
     if (sortSelect) {
         sortSelect.addEventListener('change', function() {
             currentPage = 1;
-            loadTasks();
+            applyFiltersAndRender();
         });
     }
     
@@ -211,26 +213,23 @@ function setupEventListeners() {
         prevBtn.addEventListener('click', function() {
             if (currentPage > 1) {
                 currentPage--;
-                loadTasks();
+                renderCurrentPage();
             }
         });
     }
     
     if (nextBtn) {
         nextBtn.addEventListener('click', function() {
-            currentPage++;
-            loadTasks();
+            const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderCurrentPage();
+            }
         });
     }
 }
 
-// State
-let currentPage = 1;
-let currentFilter = 'all';
-let currentSearch = '';
-const tasksPerPage = 10;
-
-async function loadTasks() {
+async function loadAllTasks() {
     const token = localStorage.getItem('jwt_token');
     if (!token) {
         showToast('Please login to continue', 'warning', 'Authentication Required');
@@ -238,90 +237,93 @@ async function loadTasks() {
         return;
     }
     
-    const tasksList = document.getElementById('tasks-list');
-    tasksList.innerHTML = `
-        <div class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i> Loading tasks...
-        </div>
-    `;
-    
     try {
-        // Build query parameters
-        let params = new URLSearchParams({
-            limit: tasksPerPage,
-            offset: (currentPage - 1) * tasksPerPage
-        });
+        // Load all tasks without pagination
+        let tasks = [];
+        let offset = 0;
+        const limit = 100;
         
-        if (currentFilter !== 'all') {
-            params.append('status', currentFilter);
-        }
-        
-        // Add sorting parameters
-        const sortSelect = document.getElementById('sort-select');
-        let sortBy = 'created_at';
-        let sortOrder = 'desc';
-        
-        if (sortSelect) {
-            const sortValue = sortSelect.value;
-            switch(sortValue) {
-                case 'newest':
-                    sortBy = 'created_at';
-                    sortOrder = 'desc';
-                    break;
-                case 'oldest':
-                    sortBy = 'created_at';
-                    sortOrder = 'asc';
-                    break;
-                case 'title_asc':
-                    sortBy = 'title';
-                    sortOrder = 'asc';
-                    break;
-                case 'title_desc':
-                    sortBy = 'title';
-                    sortOrder = 'desc';
-                    break;
-                case 'status':
-                    sortBy = 'status';
-                    sortOrder = 'asc';
-                    break;
+        while (true) {
+            const response = await fetch(`/api/tasks?limit=${limit}&offset=${offset}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to load tasks');
             }
-        }
-        
-        params.append('sort_by', sortBy);
-        params.append('sort_order', sortOrder);
-        
-        const url = `/api/tasks?${params.toString()}`;
-        
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (response.ok) {
+            
             const result = await response.json();
             if (result.success) {
-                const tasks = result.data.tasks || [];
-                renderTasks(tasks);
-                updatePagination(result.data.total);
+                tasks = tasks.concat(result.data.tasks || []);
                 
-                // Update stats
-                if (result.data.stats) {
-                    document.getElementById('total-tasks').textContent = `${result.data.stats.total} tasks`;
-                    const showing = tasks.length;
-                    document.getElementById('filtered-tasks').textContent = `Showing ${showing} of ${result.data.total}`;
+                // If we got fewer tasks than the limit, we've reached the end
+                if (!result.data.tasks || result.data.tasks.length < limit) {
+                    break;
                 }
+                offset += limit;
             } else {
-                showError(result.message || 'Failed to load tasks');
+                throw new Error(result.message || 'Failed to load tasks');
             }
-        } else {
-            const error = await response.json();
-            showError(error.message || 'Failed to load tasks');
         }
+        
+        allTasks = tasks;
+        applyFiltersAndRender();
     } catch (error) {
         console.error('Error loading tasks:', error);
-        showError('Connection error');
+        showError('Failed to load tasks: ' + error.message);
     }
+}
+
+function applyFiltersAndRender() {
+    // Apply status filter
+    if (currentFilter === 'all') {
+        filteredTasks = [...allTasks];
+    } else {
+        filteredTasks = allTasks.filter(task => task.status === currentFilter);
+    }
+    
+    // Apply search filter
+    if (currentSearch) {
+        const searchLower = currentSearch.toLowerCase();
+        filteredTasks = filteredTasks.filter(task => 
+            task.title.toLowerCase().includes(searchLower) ||
+            (task.description && task.description.toLowerCase().includes(searchLower))
+        );
+    }
+    
+    // Apply sorting
+    const sortSelect = document.getElementById('sort-select');
+    const sortValue = sortSelect ? sortSelect.value : 'newest';
+    
+    filteredTasks.sort((a, b) => {
+        switch(sortValue) {
+            case 'oldest':
+                return new Date(a.created_at) - new Date(b.created_at);
+            case 'title_asc':
+                return a.title.localeCompare(b.title);
+            case 'title_desc':
+                return b.title.localeCompare(a.title);
+            case 'status':
+                return a.status.localeCompare(b.status);
+            case 'newest':
+            default:
+                return new Date(b.created_at) - new Date(a.created_at);
+        }
+    });
+    
+    renderCurrentPage();
+}
+
+function renderCurrentPage() {
+    const start = (currentPage - 1) * tasksPerPage;
+    const end = start + tasksPerPage;
+    const tasksToShow = filteredTasks.slice(start, end);
+    
+    renderTasks(tasksToShow);
+    updatePagination();
 }
 
 function renderTasks(tasks) {
@@ -341,7 +343,6 @@ function renderTasks(tasks) {
             </div>
         `;
         
-        // Add event listener for create first task button
         const createFirstBtn = document.getElementById('create-first-task');
         if (createFirstBtn) {
             createFirstBtn.addEventListener('click', function() {
@@ -391,15 +392,25 @@ function renderTasks(tasks) {
     tasksList.innerHTML = html;
 }
 
-function updatePagination(tasksCount) {
+function updatePagination() {
     const prevBtn = document.getElementById('prev-page');
     const nextBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
     
-    const totalPages = Math.ceil(tasksCount / tasksPerPage);
+    const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
     pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage >= totalPages || totalPages === 0;
+    
+    if (prevBtn) {
+        prevBtn.disabled = currentPage === 1;
+    }
+    if (nextBtn) {
+        nextBtn.disabled = currentPage >= totalPages || totalPages === 0;
+    }
+    
+    // Update stats
+    document.getElementById('total-tasks').textContent = `${filteredTasks.length} tasks`;
+    const showing = Math.min(tasksPerPage, filteredTasks.length - (currentPage - 1) * tasksPerPage);
+    document.getElementById('filtered-tasks').textContent = `Showing ${showing} of ${filteredTasks.length}`;
 }
 
 async function handleTaskSubmit(e) {
@@ -441,24 +452,19 @@ async function handleTaskSubmit(e) {
         const result = await response.json();
         
         if (response.ok && result.success) {
-            // Success!
             showToast('Task created successfully!', 'success', 'Success');
             
-            // Close modal and reset form
             document.getElementById('taskModal').style.display = 'none';
             document.getElementById('taskForm').reset();
             
-            // Refresh data
-            currentPage = 1;
-            loadTasks();
+            // Reload tasks
+            loadAllTasks();
         } else {
-            // Handle error
-            const errorMessage = result.message || 'Failed to create task';
-            showToast(`Error: ${errorMessage}`, 'error', 'Error');
+            showToast(`Error: ${result.message}`, 'error', 'Error');
         }
     } catch (error) {
         console.error('Error creating task:', error);
-        showToast('Failed to create task. Please try again.', 'error', 'Error');
+        showToast('Failed to create task', 'error', 'Error');
     } finally {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
@@ -471,7 +477,7 @@ function showError(message) {
         <div class="error-state">
             <i class="fas fa-exclamation-triangle"></i>
             <h3>${message}</h3>
-            <button onclick="loadTasks()" class="btn-retry">
+            <button onclick="loadAllTasks()" class="btn-retry">
                 <i class="fas fa-redo"></i> Try Again
             </button>
         </div>
@@ -500,6 +506,10 @@ window.editTask = function(taskId) {
 };
 
 window.deleteTask = async function(taskId) {
+    if (!confirm('Are you sure you want to delete this task?')) {
+        return;
+    }
+    
     const token = localStorage.getItem('jwt_token');
     if (!token) {
         showToast('Please login to continue', 'warning', 'Authentication Required');
@@ -519,7 +529,7 @@ window.deleteTask = async function(taskId) {
         
         if (response.ok && result.success) {
             showToast('Task deleted successfully', 'success', 'Success');
-            loadTasks();
+            loadAllTasks();
         } else {
             const errorMsg = result.message || 'Failed to delete task';
             showToast(`Error: ${errorMsg}`, 'error', 'Error');

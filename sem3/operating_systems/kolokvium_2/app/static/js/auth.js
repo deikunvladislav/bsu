@@ -1,12 +1,19 @@
 // Authentication JavaScript
 
+let isLoginSubmitting = false;
+let isRegisterSubmitting = false;
+
 function setupLoginForm() {
     const form = document.getElementById('login-form');
     if (!form) return;
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        e.stopPropagation(); // Prevent multiple submissions
+        e.stopPropagation();
+        
+        if (isLoginSubmitting) {
+            return;
+        }
         
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
@@ -16,7 +23,7 @@ function setupLoginForm() {
             return;
         }
         
-        // Disable form
+        isLoginSubmitting = true;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
@@ -31,26 +38,24 @@ function setupLoginForm() {
                 body: JSON.stringify({ username, password })
             });
             
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Login failed');
-            }
-            
             const data = await response.json();
             
-            // Store token in localStorage for API calls
-            localStorage.setItem('jwt_token', data.access_token);
-            localStorage.setItem('current_user', JSON.stringify(data.user));
-            
-            showToast('Login successful! Redirecting to dashboard...', 'success', 'Success');
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 1500);
-            
+            if (response.ok) {
+                localStorage.setItem('jwt_token', data.access_token);
+                localStorage.setItem('current_user', JSON.stringify(data.user));
+                
+                showToast('Login successful! Redirecting to dashboard...', 'success', 'Success');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Login failed');
+            }
         } catch (error) {
             showToast(error.message || 'Login failed. Please try again.', 'error', 'Error');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
+            isLoginSubmitting = false;
         }
     });
 }
@@ -61,7 +66,11 @@ function setupRegisterForm() {
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        e.stopPropagation(); // Prevent multiple submissions
+        e.stopPropagation();
+        
+        if (isRegisterSubmitting) {
+            return;
+        }
         
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
@@ -82,7 +91,7 @@ function setupRegisterForm() {
             return;
         }
         
-        // Disable form
+        isRegisterSubmitting = true;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
@@ -97,22 +106,21 @@ function setupRegisterForm() {
                 body: JSON.stringify({ username, password })
             });
             
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Registration failed');
-            }
-            
             const data = await response.json();
             
-            showToast('Registration successful! Redirecting to login...', 'success', 'Success');
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 1500);
-            
+            if (response.ok) {
+                showToast('Registration successful! Redirecting to login...', 'success', 'Success');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Registration failed');
+            }
         } catch (error) {
             showToast(error.message || 'Registration failed. Please try again.', 'error', 'Error');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
+            isRegisterSubmitting = false;
         }
     });
 }

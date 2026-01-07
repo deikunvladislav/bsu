@@ -1,4 +1,4 @@
-// Global toast notification system
+// Global toast notification system with confirmation dialog
 window.showToast = function(message, type = 'info', title = '') {
     // Create toast container if not exists
     let container = document.getElementById('toast-container');
@@ -48,12 +48,111 @@ window.showToast = function(message, type = 'info', title = '') {
     container.appendChild(toast);
     
     // Auto remove after 5 seconds
-    setTimeout(() => {
+    const autoRemove = setTimeout(() => {
         if (toast.parentNode) {
             toast.style.animation = 'slideOutRight 0.3s ease forwards';
             setTimeout(() => toast.remove(), 300);
         }
     }, 5000);
+    
+    // Clear timeout on hover
+    toast.addEventListener('mouseenter', () => {
+        clearTimeout(autoRemove);
+    });
+    
+    toast.addEventListener('mouseleave', () => {
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOutRight 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+    });
+};
+
+// Confirmation dialog using toast-like modal
+window.showConfirm = function(message, title = 'Confirmation') {
+    return new Promise((resolve) => {
+        // Create modal container
+        const modal = document.createElement('div');
+        modal.className = 'modal confirm-modal';
+        modal.style.display = 'flex';
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-question-circle"></i> ${title}</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>${message}</p>
+                    <div class="modal-actions">
+                        <button id="confirm-yes" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Yes
+                        </button>
+                        <button id="confirm-no" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> No
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Close modal function
+        const closeModal = () => {
+            modal.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(() => {
+                if (modal.parentNode) {
+                    modal.remove();
+                }
+            }, 300);
+        };
+        
+        // Event listeners
+        const closeBtn = modal.querySelector('.close-modal');
+        const yesBtn = modal.querySelector('#confirm-yes');
+        const noBtn = modal.querySelector('#confirm-no');
+        
+        const handleYes = () => {
+            closeModal();
+            resolve(true);
+        };
+        
+        const handleNo = () => {
+            closeModal();
+            resolve(false);
+        };
+        
+        closeBtn.addEventListener('click', handleNo);
+        yesBtn.addEventListener('click', handleYes);
+        noBtn.addEventListener('click', handleNo);
+        
+        // Close on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                handleNo();
+            }
+        });
+        
+        // Escape key to cancel
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                handleNo();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        
+        document.addEventListener('keydown', handleEscape);
+        
+        // Clean up event listener on modal close
+        const originalCloseModal = closeModal;
+        closeModal = () => {
+            document.removeEventListener('keydown', handleEscape);
+            originalCloseModal();
+        };
+    });
 };
 
 // Add styles if not already present
@@ -155,6 +254,27 @@ if (!document.getElementById('toast-styles')) {
             color: #6c757d;
         }
         
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .confirm-modal .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
         @keyframes slideInRight {
             from {
                 transform: translateX(100%);
@@ -175,6 +295,68 @@ if (!document.getElementById('toast-styles')) {
                 transform: translateX(100%);
                 opacity: 0;
             }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+        
+        /* Dark theme styles for toast */
+        [data-theme="dark"] .toast {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-left-color: var(--primary);
+        }
+        
+        [data-theme="dark"] .toast.success {
+            background: #064e3b;
+            border-left-color: #059669;
+        }
+        
+        [data-theme="dark"] .toast.error {
+            background: #7f1d1d;
+            border-left-color: #dc2626;
+        }
+        
+        [data-theme="dark"] .toast.info {
+            background: #1e3a8a;
+            border-left-color: #3b82f6;
+        }
+        
+        [data-theme="dark"] .toast.warning {
+            background: #78350f;
+            border-left-color: #d97706;
+        }
+        
+        [data-theme="dark"] .toast .toast-title {
+            color: #e2e8f0;
+        }
+        
+        [data-theme="dark"] .toast .toast-message {
+            color: #cbd5e0;
+        }
+        
+        [data-theme="dark"] .toast-close {
+            color: #a0aec0;
+        }
+        
+        [data-theme="dark"] .toast-close:hover {
+            background: #4a5568;
+            color: #e2e8f0;
         }
     `;
     document.head.appendChild(style);

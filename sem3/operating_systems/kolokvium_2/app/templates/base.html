@@ -35,6 +35,20 @@
             --radius: 12px;
         }
         
+        [data-theme="dark"] {
+            --primary: #7c3aed;
+            --primary-dark: #5b21b6;
+            --secondary: #9d174d;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --dark: #f9fafb;
+            --light: #1f2937;
+            --gray: #9ca3af;
+            --border: #374151;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -45,10 +59,11 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
             color: var(--dark);
-            background: #ffffff;
+            background: var(--light);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         
         .app-container {
@@ -59,14 +74,15 @@
         
         /* Modern Navigation */
         .navbar {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--light);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 1000;
             padding: 0;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         .nav-container {
@@ -119,7 +135,7 @@
         }
         
         .nav-link:hover {
-            background: var(--light);
+            background: rgba(0, 0, 0, 0.05);
             color: var(--primary);
         }
         
@@ -145,6 +161,8 @@
         /* Main Content */
         .main-content {
             flex: 1;
+            background: var(--light);
+            transition: background-color 0.3s ease;
         }
         
         /* Footer */
@@ -153,6 +171,7 @@
             color: white;
             padding: 60px 0 30px;
             margin-top: auto;
+            transition: background-color 0.3s ease;
         }
         
         .footer-content {
@@ -234,11 +253,12 @@
                 top: 70px;
                 left: 0;
                 width: 100%;
-                background: white;
+                background: var(--light);
                 flex-direction: column;
                 padding: 20px;
                 box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
                 display: none;
+                border-bottom: 1px solid var(--border);
             }
             
             .nav-links.active {
@@ -292,11 +312,103 @@
             cursor: pointer;
             padding: 8px;
             border-radius: 8px;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
         }
         
         .theme-toggle:hover {
-            background: var(--light);
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Dark theme specific styles */
+        [data-theme="dark"] .navbar {
+            background: #1a202c;
+            border-bottom-color: #2d3748;
+        }
+        
+        [data-theme="dark"] .nav-link {
+            color: #e2e8f0;
+        }
+        
+        [data-theme="dark"] .nav-link:hover {
+            background: #2d3748;
+            color: var(--primary);
+        }
+        
+        [data-theme="dark"] .nav-link.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+        
+        [data-theme="dark"] .theme-toggle {
+            color: #e2e8f0;
+        }
+        
+        [data-theme="dark"] .theme-toggle:hover {
+            background: #2d3748;
+        }
+        
+        [data-theme="dark"] .footer {
+            background: #1a202c;
+        }
+        
+        [data-theme="dark"] .footer-links a {
+            color: #a0aec0;
+        }
+        
+        [data-theme="dark"] .footer-links a:hover {
+            color: #e2e8f0;
+        }
+        
+        /* Cards and containers in dark theme */
+        [data-theme="dark"] .auth-card,
+        [data-theme="dark"] .dashboard-section,
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .task-item,
+        [data-theme="dark"] .modal-content,
+        [data-theme="dark"] .quick-actions,
+        [data-theme="dark"] .recent-tasks,
+        [data-theme="dark"] .profile-actions .action-section,
+        [data-theme="dark"] .task-card,
+        [data-theme="dark"] .tasks-toolbar,
+        [data-theme="dark"] .tasks-footer,
+        [data-theme="dark"] .edit-task-card {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-color: #4a5568;
+        }
+        
+        [data-theme="dark"] .form-control,
+        [data-theme="dark"] .form-input,
+        [data-theme="dark"] .form-textarea,
+        [data-theme="dark"] .form-select,
+        [data-theme="dark"] .search-input {
+            background: #1a202c;
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+        
+        [data-theme="dark"] .form-control:focus,
+        [data-theme="dark"] .form-input:focus,
+        [data-theme="dark"] .form-textarea:focus,
+        [data-theme="dark"] .form-select:focus,
+        [data-theme="dark"] .search-input:focus {
+            border-color: var(--primary);
+        }
+        
+        [data-theme="dark"] .btn-action.secondary {
+            background: #4a5568;
+            color: #e2e8f0;
+            border-color: #4a5568;
+        }
+        
+        [data-theme="dark"] .btn-action.secondary:hover {
+            background: #5a6578;
+        }
+        
+        [data-theme="dark"] .toast {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-left-color: var(--primary);
         }
     </style>
 </head>
@@ -453,6 +565,9 @@
                 if (themeIcon) {
                     themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                 }
+                
+                // Show toast notification
+                showToast(`Switched to ${newTheme} theme`, 'success', 'Theme Changed');
             });
             
             // Load saved theme
@@ -528,7 +643,5 @@
     </script>
     
     {% block extra_js %}{% endblock %}
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
 </body>
 </html>

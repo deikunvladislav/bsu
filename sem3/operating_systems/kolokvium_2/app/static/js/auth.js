@@ -6,6 +6,7 @@ function setupLoginForm() {
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        e.stopPropagation(); // Prevent multiple submissions
         
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
@@ -41,10 +42,10 @@ function setupLoginForm() {
             localStorage.setItem('jwt_token', data.access_token);
             localStorage.setItem('current_user', JSON.stringify(data.user));
             
-            showToast('Login successful!', 'success', 'Success');
+            showToast('Login successful! Redirecting to dashboard...', 'success', 'Success');
             setTimeout(() => {
                 window.location.href = '/dashboard';
-            }, 1000);
+            }, 1500);
             
         } catch (error) {
             showToast(error.message || 'Login failed. Please try again.', 'error', 'Error');
@@ -60,6 +61,7 @@ function setupRegisterForm() {
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        e.stopPropagation(); // Prevent multiple submissions
         
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
@@ -100,10 +102,12 @@ function setupRegisterForm() {
                 throw new Error(data.message || 'Registration failed');
             }
             
-            showToast('Registration successful! Please login.', 'success', 'Success');
+            const data = await response.json();
+            
+            showToast('Registration successful! Redirecting to login...', 'success', 'Success');
             setTimeout(() => {
                 window.location.href = '/login';
-            }, 1000);
+            }, 1500);
             
         } catch (error) {
             showToast(error.message || 'Registration failed. Please try again.', 'error', 'Error');

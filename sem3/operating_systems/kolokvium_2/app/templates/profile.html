@@ -139,6 +139,7 @@ function setupProfileForms() {
     if (changePasswordForm) {
         changePasswordForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            e.stopPropagation();
             
             const currentPassword = document.getElementById('current-password').value;
             const newPassword = document.getElementById('new-password').value;
@@ -160,6 +161,11 @@ function setupProfileForms() {
                 window.location.href = '/login';
                 return;
             }
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+            submitBtn.disabled = true;
             
             try {
                 const response = await fetch('/api/auth/change-password', {
@@ -185,6 +191,9 @@ function setupProfileForms() {
             } catch (error) {
                 console.error('Error changing password:', error);
                 showToast('Failed to change password', 'error', 'Error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         });
     }
@@ -193,9 +202,11 @@ function setupProfileForms() {
     const deleteAllTasksBtn = document.getElementById('delete-all-tasks-btn');
     if (deleteAllTasksBtn) {
         deleteAllTasksBtn.addEventListener('click', async function() {
-            if (!confirm('Are you sure you want to delete ALL tasks? This action cannot be undone.')) {
-                return;
-            }
+            const confirmed = await showConfirm(
+                'Are you sure you want to delete ALL tasks? This action cannot be undone.',
+                'Delete All Tasks'
+            );
+            if (!confirmed) return;
             
             const token = localStorage.getItem('jwt_token');
             if (!token) {
@@ -204,9 +215,12 @@ function setupProfileForms() {
                 return;
             }
             
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            this.disabled = true;
+            
             try {
                 // First, get all tasks
-                const tasksResponse = await fetch('/api/tasks', {
+                const tasksResponse = await fetch('/api/tasks?limit=1000', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -216,32 +230,48 @@ function setupProfileForms() {
                 
                 if (!tasksResult.success) {
                     showToast('Failed to get tasks', 'error', 'Error');
+                    this.innerHTML = '<i class="fas fa-trash"></i> Delete All Tasks';
+                    this.disabled = false;
                     return;
                 }
                 
                 // Delete each task
                 const tasks = tasksResult.data.tasks || [];
                 let deletedCount = 0;
+                let errorCount = 0;
                 
                 for (const task of tasks) {
-                    const deleteResponse = await fetch(`/api/tasks/${task.id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
+                    try {
+                        const deleteResponse = await fetch(`/api/tasks/${task.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (deleteResponse.ok) {
+                            deletedCount++;
+                        } else {
+                            errorCount++;
                         }
-                    });
-                    
-                    if (deleteResponse.ok) {
-                        deletedCount++;
+                    } catch (error) {
+                        errorCount++;
                     }
                 }
                 
-                showToast(`Successfully deleted ${deletedCount} tasks!`, 'success', 'Success');
+                if (errorCount > 0) {
+                    showToast(`Deleted ${deletedCount} tasks, but ${errorCount} failed`, 'warning', 'Partial Success');
+                } else {
+                    showToast(`Successfully deleted ${deletedCount} tasks!`, 'success', 'Success');
+                }
                 loadProfileStats();
                 
             } catch (error) {
                 console.error('Error deleting tasks:', error);
                 showToast('Failed to delete tasks', 'error', 'Error');
+            } finally {
+                this.innerHTML = '<i class="fas fa-trash"></i> Delete All Tasks';
+                this.disabled = false;
             }
         });
     }
@@ -250,9 +280,11 @@ function setupProfileForms() {
     const deleteAccountBtn = document.getElementById('delete-account-btn');
     if (deleteAccountBtn) {
         deleteAccountBtn.addEventListener('click', async function() {
-            if (!confirm('Are you sure you want to delete your account? This will permanently delete ALL your data and cannot be undone.')) {
-                return;
-            }
+            const confirmed = await showConfirm(
+                'Are you sure you want to delete your account? This will permanently delete ALL your data and cannot be undone.',
+                'Delete Account'
+            );
+            if (!confirmed) return;
             
             const token = localStorage.getItem('jwt_token');
             if (!token) {
@@ -260,6 +292,9 @@ function setupProfileForms() {
                 window.location.href = '/login';
                 return;
             }
+            
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            this.disabled = true;
             
             try {
                 const response = await fetch('/api/auth/delete-account', {
@@ -275,14 +310,18 @@ function setupProfileForms() {
                     showToast('Account deleted successfully', 'success', 'Success');
                     setTimeout(() => {
                         window.location.href = '/';
-                    }, 1000);
+                    }, 1500);
                 } else {
                     const errorData = await response.json();
                     showToast('Error: ' + errorData.message, 'error', 'Error');
+                    this.innerHTML = '<i class="fas fa-user-slash"></i> Delete Account';
+                    this.disabled = false;
                 }
             } catch (error) {
                 console.error('Error deleting account:', error);
                 showToast('Failed to delete account', 'error', 'Error');
+                this.innerHTML = '<i class="fas fa-user-slash"></i> Delete Account';
+                this.disabled = false;
             }
         });
     }
@@ -437,10 +476,12 @@ function setupProfileForms() {
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 .btn-warning:hover {
     background: #ffc145;
+    transform: translateY(-1px);
 }
 
 .btn-danger {
@@ -451,10 +492,50 @@ function setupProfileForms() {
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 .btn-danger:hover {
     background: #ff5252;
+    transform: translateY(-1px);
+}
+
+/* Dark theme styles */
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .action-section {
+    background: #2d3748;
+}
+
+[data-theme="dark"] .user-details h2 {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .user-details p {
+    color: #a0aec0;
+}
+
+[data-theme="dark"] .stat-info h3 {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .stat-info p {
+    color: #a0aec0;
+}
+
+[data-theme="dark"] .action-section h3 {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .danger-action h4 {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .danger-action p {
+    color: #a0aec0;
+}
+
+[data-theme="dark"] .danger-zone {
+    border-color: #fc8183;
 }
 </style>
 {% endblock %}

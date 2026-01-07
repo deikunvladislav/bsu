@@ -60,9 +60,10 @@ def edit_task(task_id):
     # Check if task belongs to user
     task = Task.query.filter_by(id=task_id, user_id=g.current_user.id).first()
     if not task:
+        showToast('Task not found or you don\'t have permission to edit it', 'error', 'Error')
         return redirect(url_for('frontend.tasks'))
     
-    return render_template("edit_task.html", task_id=task_id)
+    return render_template("edit_tasks.html", task_id=task_id)
 
 @frontend_bp.route("/profile")
 def profile():

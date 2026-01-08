@@ -1,5 +1,3 @@
-// Authentication JavaScript
-
 let isLoginSubmitting = false;
 let isRegisterSubmitting = false;
 
@@ -125,7 +123,6 @@ function setupRegisterForm() {
     });
 }
 
-// Initialize forms
 if (document.getElementById('login-form')) {
     setupLoginForm();
 }

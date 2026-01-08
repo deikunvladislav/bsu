@@ -1,28 +1,19 @@
-// Main Application JavaScript
-
-// Check authentication on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('App initialized');
     
-    // Check if user has JWT token
     const token = localStorage.getItem('jwt_token');
     const currentUser = localStorage.getItem('current_user');
     
-    // Update UI based on authentication
     updateAuthUI(!!token);
     
-    // Setup global event listeners
     setupGlobalListeners();
 });
 
 function updateAuthUI(isAuthenticated) {
-    // This function would update navigation based on auth state
-    // The base.html template already handles this based on current_user
     console.log('Auth state:', isAuthenticated ? 'Authenticated' : 'Not authenticated');
 }
 
 function setupGlobalListeners() {
-    // Global logout handler
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
@@ -31,11 +22,10 @@ function setupGlobalListeners() {
         });
     }
     
-    // Global API status check
     const apiStatusElement = document.getElementById('api-status');
     if (apiStatusElement) {
         checkApiStatus();
-        setInterval(checkApiStatus, 30000); // Check every 30 seconds
+        setInterval(checkApiStatus, 30000);
     }
 }
 
@@ -74,16 +64,13 @@ async function handleLogout() {
     } catch (error) {
         console.error('Logout API error:', error);
     } finally {
-        // Clear local storage
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('current_user');
         
-        // Redirect to logout page
         window.location.href = '/logout';
     }
 }
 
-// Utility functions
 function getAuthToken() {
     return localStorage.getItem('jwt_token');
 }
@@ -108,7 +95,6 @@ async function handleApiResponse(response) {
         }));
         
         if (response.status === 401) {
-            // Unauthorized - clear token and redirect
             localStorage.removeItem('jwt_token');
             localStorage.removeItem('current_user');
             window.location.href = '/login';
@@ -122,12 +108,10 @@ async function handleApiResponse(response) {
 }
 
 function showNotification(message, type = 'info') {
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `flash-message ${type}`;
     notification.textContent = message;
     
-    // Add to flash messages container
     let container = document.querySelector('.flash-messages');
     if (!container) {
         container = document.createElement('div');
@@ -137,14 +121,12 @@ function showNotification(message, type = 'info') {
     
     container.appendChild(notification);
     
-    // Auto remove after 5 seconds
     setTimeout(() => {
         notification.style.animation = 'slideOutRight 0.3s ease forwards';
         setTimeout(() => notification.remove(), 300);
     }, 5000);
 }
 
-// Global task functions
 window.createTask = async function(taskData) {
     const token = getAuthToken();
     
@@ -238,7 +220,6 @@ window.deleteTask = async function(taskId) {
     }
 };
 
-// Export utility functions
 window.App = {
     getAuthToken,
     getAuthHeaders,

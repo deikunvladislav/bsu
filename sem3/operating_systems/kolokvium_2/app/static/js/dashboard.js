@@ -42,21 +42,17 @@ async function handleTaskSubmit(e) {
         if (response.ok) {
             showNotification('Task created successfully!', 'success');
             
-            // Close modal and reset form
             const modal = document.getElementById('task-modal');
             const taskForm = document.getElementById('task-form');
             
             if (modal) modal.style.display = 'none';
             if (taskForm) taskForm.reset();
             
-            // Refresh dashboard data
             loadDashboardData();
         } else {
-            // Handle API error
             const errorMsg = data.message || 'Failed to create task';
             const errorCode = data.code || 'UNKNOWN_ERROR';
             
-            // Show specific error messages
             if (errorCode === 'INVALID_STATUS') {
                 showNotification(`Invalid status. Valid values are: todo, in_progress, done`, 'error');
             } else if (errorCode === 'INVALID_TITLE') {
@@ -71,7 +67,6 @@ async function handleTaskSubmit(e) {
         console.error('Network error creating task:', error);
         showNotification('Network error. Please check your connection and try again.', 'error');
     } finally {
-        // Restore button state
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }

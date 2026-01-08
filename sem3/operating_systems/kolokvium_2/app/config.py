@@ -5,18 +5,15 @@ from datetime import timedelta
 
 @dataclass(frozen=True)
 class Config:
-    # Session and JWT
     SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-secret-change-me-in-production")
     SESSION_COOKIE_NAME: str = "todo_session"
     SESSION_COOKIE_SECURE: bool = False
     SESSION_COOKIE_HTTPONLY: bool = True
     SESSION_COOKIE_SAMESITE: str = "Lax"
     
-    # Database
     SQLALCHEMY_DATABASE_URI: str = os.getenv("DATABASE_URL", "sqlite:///todo.db")
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     
-    # JWT
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "jwt-secret-change-me-in-production")
     JWT_ACCESS_TOKEN_EXPIRES: timedelta = timedelta(minutes=30)
     JWT_TOKEN_LOCATION: list = field(default_factory=lambda: ["headers"])
@@ -26,17 +23,13 @@ class Config:
     JWT_COOKIE_CSRF_PROTECT: bool = False
     JWT_COOKIE_SAMESITE: str = "Lax"
     
-    # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     
-    # Cache
     CACHE_TYPE: str = "SimpleCache"
     CACHE_DEFAULT_TIMEOUT: int = 300
     
-    # Security
     BCRYPT_LOG_ROUNDS: int = 12
     
-    # API
     API_TITLE: str = "Todo API"
     API_VERSION: str = "1.0.0"
     OPENAPI_VERSION: str = "3.0.2"

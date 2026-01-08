@@ -22,7 +22,6 @@ def readiness_check():
     }
     
     try:
-        # Check database connection
         result = db.session.execute(text("SELECT 1")).scalar()
         if result == 1:  
             checks["database"] = True
@@ -30,7 +29,6 @@ def readiness_check():
         current_app.logger.warning(f"Database check failed: {e}")
         checks["database"] = False
     
-    # Check cache
     cache_type = current_app.config.get("CACHE_TYPE", "NullCache")
     if cache_type == "NullCache":
         checks["cache"] = True

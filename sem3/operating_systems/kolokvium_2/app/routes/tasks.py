@@ -12,7 +12,6 @@ tasks_bp = Blueprint("tasks", __name__)
 @tasks_bp.route("/tasks", methods=["POST"])
 @jwt_required()
 def create_task():
-    """Create a new task"""
     try:
         current_user_id = get_jwt_identity()
         
@@ -24,7 +23,6 @@ def create_task():
                 "code": "INVALID_JSON"
             }), 400
         
-        # Validate required fields
         title = data.get("title")
         status = data.get("status", "todo")
         
@@ -35,7 +33,6 @@ def create_task():
                 "code": "INVALID_TITLE"
             }), 400
         
-        # Validate status
         try:
             task_status = TaskStatus(status)
         except ValueError:
@@ -47,7 +44,6 @@ def create_task():
                 "valid_statuses": valid_statuses
             }), 400
         
-        # Create task
         task = Task(
             title=title.strip(),
             description=data.get("description", ""),
@@ -58,7 +54,6 @@ def create_task():
         db.session.add(task)
         db.session.commit()
         
-        # Invalidate cache
         invalidate_task_cache(user_id=current_user_id)
         
         return jsonify({
@@ -87,7 +82,6 @@ def create_task():
 @tasks_bp.route("/tasks", methods=["GET"])
 @jwt_required()
 def list_tasks():
-    """Get all tasks for current user"""
     try:
         current_user_id = get_jwt_identity()
         
@@ -95,7 +89,6 @@ def list_tasks():
         limit = request.args.get("limit", type=int, default=100)
         offset = request.args.get("offset", type=int, default=0)
         
-        # Sorting parameters
         sort_by = request.args.get("sort_by", "created_at")
         sort_order = request.args.get("sort_order", "desc")
         
@@ -113,7 +106,6 @@ def list_tasks():
                     "code": "INVALID_STATUS"
                 }), 400
         
-        # Apply sorting
         if sort_by == "title":
             if sort_order == "asc":
                 query = query.order_by(Task.title.asc())
@@ -132,7 +124,6 @@ def list_tasks():
         else:
             query = query.order_by(Task.created_at.desc())
         
-        # Apply pagination
         if limit > 100:
             limit = 100
         elif limit < 1:
@@ -141,7 +132,6 @@ def list_tasks():
         total = query.count()
         tasks = query.limit(limit).offset(offset).all()
         
-        # Calculate statistics
         stats = {
             "todo": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.TODO).count(),
             "in_progress": Task.query.filter_by(user_id=current_user_id, status=TaskStatus.IN_PROGRESS).count(),
@@ -173,7 +163,6 @@ def list_tasks():
 @tasks_bp.route("/tasks/<int:task_id>", methods=["GET"])
 @jwt_required()
 def get_task(task_id):
-    """Get a specific task by ID"""
     try:
         current_user_id = get_jwt_identity()
         
@@ -202,7 +191,6 @@ def get_task(task_id):
 @tasks_bp.route("/tasks/<int:task_id>", methods=["PUT"])
 @jwt_required()
 def update_task(task_id):
-    """Update a task (full update)"""
     try:
         current_user_id = get_jwt_identity()
         
@@ -223,7 +211,6 @@ def update_task(task_id):
                 "code": "NO_DATA"
             }), 400
         
-        # Validate required fields for PUT
         if "title" not in data:
             return jsonify({
                 "success": False,
@@ -238,7 +225,6 @@ def update_task(task_id):
                 "code": "MISSING_STATUS"
             }), 400
         
-        # Validate title
         title = data.get("title")
         if not isinstance(title, str) or len(title.strip()) == 0:
             return jsonify({
@@ -247,7 +233,6 @@ def update_task(task_id):
                 "code": "INVALID_TITLE"
             }), 400
         
-        # Validate status
         try:
             task_status = TaskStatus(data["status"])
         except ValueError:
@@ -258,7 +243,6 @@ def update_task(task_id):
                 "code": "INVALID_STATUS"
             }), 400
         
-        # Update task
         task.title = title.strip()
         task.description = data.get("description", "")
         task.status = task_status
@@ -292,7 +276,6 @@ def update_task(task_id):
 @tasks_bp.route("/tasks/<int:task_id>", methods=["PATCH"])
 @jwt_required()
 def patch_task(task_id):
-    """Partially update a task"""
     try:
         current_user_id = get_jwt_identity()
         
@@ -315,7 +298,6 @@ def patch_task(task_id):
         
         updated = False
         
-        # Update title if provided
         if "title" in data:
             title = data["title"]
             if not isinstance(title, str) or len(title.strip()) == 0:
@@ -327,12 +309,10 @@ def patch_task(task_id):
             task.title = title.strip()
             updated = True
         
-        # Update description if provided
         if "description" in data:
             task.description = data["description"] or ""
             updated = True
         
-        # Update status if provided
         if "status" in data:
             try:
                 task_status = TaskStatus(data["status"])
@@ -382,7 +362,6 @@ def patch_task(task_id):
 @tasks_bp.route("/tasks/<int:task_id>", methods=["DELETE"])
 @jwt_required()
 def delete_task(task_id):
-    """Delete a task"""
     try:
         current_user_id = get_jwt_identity()
         
@@ -428,7 +407,6 @@ def delete_task(task_id):
 @tasks_bp.route("/tasks/stats", methods=["GET"])
 @jwt_required()
 def get_task_stats():
-    """Get task statistics for current user"""
     try:
         current_user_id = get_jwt_identity()
         
@@ -455,11 +433,9 @@ def get_task_stats():
 @tasks_bp.route("/tasks/delete-all", methods=["DELETE"])
 @jwt_required()
 def delete_all_tasks():
-    """Delete all tasks for current user"""
     try:
         current_user_id = get_jwt_identity()
         
-        # Get count before deletion
         task_count = Task.query.filter_by(user_id=current_user_id).count()
         
         if task_count == 0:
@@ -471,11 +447,9 @@ def delete_all_tasks():
                 }
             }), 200
         
-        # Delete all tasks for the user
         deleted_count = Task.query.filter_by(user_id=current_user_id).delete()
         db.session.commit()
         
-        # Invalidate cache
         invalidate_task_cache(user_id=current_user_id)
         
         return jsonify({

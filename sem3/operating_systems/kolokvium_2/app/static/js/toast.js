@@ -1,6 +1,4 @@
-// Global toast notification system with confirmation dialog
 window.showToast = function(message, type = 'info', title = '') {
-    // Create toast container if not exists
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -12,7 +10,6 @@ window.showToast = function(message, type = 'info', title = '') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     
-    // Set icon based on type
     let icon = 'fas fa-info-circle';
     switch(type) {
         case 'success': icon = 'fas fa-check-circle'; break;
@@ -24,7 +21,6 @@ window.showToast = function(message, type = 'info', title = '') {
             break;
     }
     
-    // Create toast HTML
     toast.innerHTML = `
         <div class="toast-icon">
             <i class="${icon}"></i>
@@ -38,7 +34,6 @@ window.showToast = function(message, type = 'info', title = '') {
         </button>
     `;
     
-    // Add close event
     const closeBtn = toast.querySelector('.toast-close');
     closeBtn.addEventListener('click', () => {
         toast.style.animation = 'slideOutRight 0.3s ease forwards';
@@ -47,7 +42,6 @@ window.showToast = function(message, type = 'info', title = '') {
     
     container.appendChild(toast);
     
-    // Auto remove after 5 seconds
     const autoRemove = setTimeout(() => {
         if (toast.parentNode) {
             toast.style.animation = 'slideOutRight 0.3s ease forwards';
@@ -55,7 +49,6 @@ window.showToast = function(message, type = 'info', title = '') {
         }
     }, 5000);
     
-    // Clear timeout on hover
     toast.addEventListener('mouseenter', () => {
         clearTimeout(autoRemove);
     });
@@ -70,10 +63,8 @@ window.showToast = function(message, type = 'info', title = '') {
     });
 };
 
-// Confirmation dialog using toast-like modal
 window.showConfirm = function(message, title = 'Confirmation') {
     return new Promise((resolve) => {
-        // Create modal container
         const modal = document.createElement('div');
         modal.className = 'modal confirm-modal';
         modal.style.display = 'flex';
@@ -100,7 +91,6 @@ window.showConfirm = function(message, title = 'Confirmation') {
         
         document.body.appendChild(modal);
         
-        // Close modal function
         const closeModal = () => {
             modal.style.animation = 'fadeOut 0.3s ease forwards';
             setTimeout(() => {
@@ -110,7 +100,6 @@ window.showConfirm = function(message, title = 'Confirmation') {
             }, 300);
         };
         
-        // Event listeners
         const closeBtn = modal.querySelector('.close-modal');
         const yesBtn = modal.querySelector('#confirm-yes');
         const noBtn = modal.querySelector('#confirm-no');
@@ -129,14 +118,12 @@ window.showConfirm = function(message, title = 'Confirmation') {
         yesBtn.addEventListener('click', handleYes);
         noBtn.addEventListener('click', handleNo);
         
-        // Close on outside click
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 handleNo();
             }
         });
         
-        // Escape key to cancel
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
                 handleNo();
@@ -146,7 +133,6 @@ window.showConfirm = function(message, title = 'Confirmation') {
         
         document.addEventListener('keydown', handleEscape);
         
-        // Clean up event listener on modal close
         const originalCloseModal = closeModal;
         closeModal = () => {
             document.removeEventListener('keydown', handleEscape);
@@ -155,7 +141,6 @@ window.showConfirm = function(message, title = 'Confirmation') {
     });
 };
 
-// Add styles if not already present
 if (!document.getElementById('toast-styles')) {
     const style = document.createElement('style');
     style.id = 'toast-styles';
@@ -315,7 +300,6 @@ if (!document.getElementById('toast-styles')) {
             }
         }
         
-        /* Dark theme styles for toast */
         [data-theme="dark"] .toast {
             background: #2d3748;
             color: #e2e8f0;

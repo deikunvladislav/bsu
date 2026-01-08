@@ -62,7 +62,6 @@
     </div>
 </div>
 
-<!-- Task Modal -->
 <div id="taskModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -104,7 +103,6 @@
 </div>
 
 <script>
-// Tasks page JavaScript
 let currentPage = 1;
 let currentFilter = 'all';
 let currentSearch = '';
@@ -118,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupEventListeners() {
-    // Modal
     const modal = document.getElementById('taskModal');
     const createBtn = document.getElementById('create-task-btn');
     const closeBtns = document.querySelectorAll('.close-modal');
@@ -143,7 +140,6 @@ function setupEventListeners() {
         }
     });
     
-    // Task form
     const taskForm = document.getElementById('taskForm');
     if (taskForm) {
         taskForm.addEventListener('submit', async function(e) {
@@ -153,7 +149,6 @@ function setupEventListeners() {
         });
     }
     
-    // Filters
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -164,7 +159,6 @@ function setupEventListeners() {
         });
     });
     
-    // Search
     const searchBtn = document.getElementById('search-btn');
     const searchInput = document.getElementById('task-search');
     
@@ -196,7 +190,6 @@ function setupEventListeners() {
         });
     }
     
-    // Sort
     const sortSelect = document.getElementById('sort-select');
     if (sortSelect) {
         sortSelect.addEventListener('change', function() {
@@ -205,7 +198,6 @@ function setupEventListeners() {
         });
     }
     
-    // Pagination
     const prevBtn = document.getElementById('prev-page');
     const nextBtn = document.getElementById('next-page');
     
@@ -238,7 +230,6 @@ async function loadAllTasks() {
     }
     
     try {
-        // Load all tasks without pagination
         let tasks = [];
         let offset = 0;
         const limit = 100;
@@ -259,7 +250,6 @@ async function loadAllTasks() {
             if (result.success) {
                 tasks = tasks.concat(result.data.tasks || []);
                 
-                // If we got fewer tasks than the limit, we've reached the end
                 if (!result.data.tasks || result.data.tasks.length < limit) {
                     break;
                 }
@@ -278,14 +268,12 @@ async function loadAllTasks() {
 }
 
 function applyFiltersAndRender() {
-    // Apply status filter
     if (currentFilter === 'all') {
         filteredTasks = [...allTasks];
     } else {
         filteredTasks = allTasks.filter(task => task.status === currentFilter);
     }
     
-    // Apply search filter
     if (currentSearch) {
         const searchLower = currentSearch.toLowerCase();
         filteredTasks = filteredTasks.filter(task => 
@@ -294,7 +282,6 @@ function applyFiltersAndRender() {
         );
     }
     
-    // Apply sorting
     const sortSelect = document.getElementById('sort-select');
     const sortValue = sortSelect ? sortSelect.value : 'newest';
     
@@ -407,7 +394,6 @@ function updatePagination() {
         nextBtn.disabled = currentPage >= totalPages || totalPages === 0;
     }
     
-    // Update stats
     document.getElementById('total-tasks').textContent = `${filteredTasks.length} tasks`;
     const showing = Math.min(tasksPerPage, filteredTasks.length - (currentPage - 1) * tasksPerPage);
     document.getElementById('filtered-tasks').textContent = `Showing ${showing} of ${filteredTasks.length}`;
@@ -457,7 +443,6 @@ async function handleTaskSubmit(e) {
             document.getElementById('taskModal').style.display = 'none';
             document.getElementById('taskForm').reset();
             
-            // Reload tasks
             loadAllTasks();
         } else {
             showToast(`Error: ${result.message}`, 'error', 'Error');
@@ -484,7 +469,6 @@ function showError(message) {
     `;
 }
 
-// Helper functions
 function getStatusClass(status) {
     switch(status) {
         case 'todo': return 'status-todo';
@@ -500,7 +484,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Global functions
 window.editTask = function(taskId) {
     window.location.href = `/tasks/${taskId}/edit`;
 };
@@ -842,7 +825,6 @@ window.deleteTask = async function(taskId) {
     color: #6c757d;
 }
 
-/* Button styles for tasks page */
 .btn-action {
     padding: 12px 24px;
     border: none;
@@ -886,7 +868,6 @@ window.deleteTask = async function(taskId) {
     box-shadow: 0 6px 20px rgba(17, 138, 178, 0.3);
 }
 
-/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -976,7 +957,6 @@ window.deleteTask = async function(taskId) {
     color: #6c757d;
 }
 
-/* Loading, empty, error states */
 .loading-state, .empty-state, .error-state {
     text-align: center;
     padding: 60px 20px;
@@ -999,7 +979,6 @@ window.deleteTask = async function(taskId) {
     margin-bottom: 20px;
 }
 
-/* Dark theme styles */
 [data-theme="dark"] .tasks-header {
     background: linear-gradient(135deg, #0c7aa0 0%, #0a5d7a 100%);
 }

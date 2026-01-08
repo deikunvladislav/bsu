@@ -5,7 +5,6 @@ from ..models import User, Task
 frontend_bp = Blueprint("frontend", __name__)
 
 def get_current_user():
-    """Get current user from session"""
     user_id = session.get('user_id')
     if user_id:
         return User.query.get(user_id)
@@ -13,12 +12,10 @@ def get_current_user():
 
 @frontend_bp.before_app_request
 def load_user():
-    """Load user for all requests"""
     g.current_user = get_current_user()
 
 @frontend_bp.context_processor
 def inject_context():
-    """Inject variables into all templates"""
     return {
         'current_user': g.get('current_user'),
         'current_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -57,7 +54,6 @@ def edit_task(task_id):
     if not g.current_user:
         return redirect(url_for('frontend.login'))
     
-    # Check if task belongs to user
     task = Task.query.filter_by(id=task_id, user_id=g.current_user.id).first()
     if not task:
         showToast('Task not found or you don\'t have permission to edit it', 'error', 'Error')

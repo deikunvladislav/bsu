@@ -134,7 +134,6 @@ function loadProfileStats() {
 }
 
 function setupProfileForms() {
-    // Change password form
     const changePasswordForm = document.getElementById('change-password-form');
     if (changePasswordForm) {
         changePasswordForm.addEventListener('submit', async function(e) {
@@ -199,7 +198,6 @@ function setupProfileForms() {
         });
     }
     
-    // Delete all tasks button
     const deleteAllTasksBtn = document.getElementById('delete-all-tasks-btn');
     if (deleteAllTasksBtn) {
         deleteAllTasksBtn.addEventListener('click', async function() {
@@ -240,7 +238,6 @@ function setupProfileForms() {
         });
     }
     
-    // Delete account button
     const deleteAccountBtn = document.getElementById('delete-account-btn');
     if (deleteAccountBtn) {
         deleteAccountBtn.addEventListener('click', async function() {
@@ -460,7 +457,6 @@ function setupProfileForms() {
     transform: translateY(-1px);
 }
 
-/* Dark theme styles */
 [data-theme="dark"] .stat-card,
 [data-theme="dark"] .action-section {
     background: #2d3748;

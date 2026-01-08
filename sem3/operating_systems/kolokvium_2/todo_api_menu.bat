@@ -108,7 +108,6 @@ if not exist "%RESPONSE_FILE%" (
     goto LoginError
 )
 
-rem Анализируем ответ с помощью Python
 echo import json, sys > "%temp%\analyze_login.py"
 echo with open(sys.argv[1], 'r', encoding='utf-8') as f: >> "%temp%\analyze_login.py"
 echo     try: >> "%temp%\analyze_login.py"
@@ -259,7 +258,6 @@ if not exist "%RESPONSE_FILE%" (
     goto RegisterError
 )
 
-rem Создаем временный Python скрипт для анализа ответа
 echo import json, sys > "%temp%\analyze_response.py"
 echo with open(sys.argv[1], 'r', encoding='utf-8') as f: >> "%temp%\analyze_response.py"
 echo     try: >> "%temp%\analyze_response.py"
@@ -324,7 +322,6 @@ if not "!RESPONSE_CODE!"=="" (
     )
 )
 
-rem Если нет кода ошибки, проверяем успешную регистрацию
 if not "!REG_USER_ID!"=="" (
     echo Registration successful
     echo User ID: !REG_USER_ID!
@@ -481,7 +478,6 @@ if not exist "%RESPONSE_FILE%" (
     goto GetTaskError
 )
 
-rem Создаем Python скрипт для проверки ответа
 echo import json, sys > "%temp%\check_get_task.py"
 echo with open(sys.argv[1], 'r', encoding='utf-8') as f: >> "%temp%\check_get_task.py"
 echo     try: >> "%temp%\check_get_task.py"
@@ -509,7 +505,6 @@ if exist "%temp%\get_check.txt" (
 del "%temp%\check_get_task.py" 2>nul
 del "%temp%\get_check.txt" 2>nul
 
-rem Проверяем результат
 if "!TASK_CHECK_RESULT!"=="TASK_NOT_FOUND" (
     echo ERROR: Task not found!
     echo Task ID !ID! does not exist or you don't have permission to access it.
@@ -534,7 +529,6 @@ if not "!TASK_CHECK_RESULT!"=="OK" (
     goto MainMenu
 )
 
-rem Если задача найдена, показываем ее
 %CURL% -s -X GET "%BASE_URL%/tasks/%ID%" ^
     -H "Authorization: Bearer %TOKEN%" ^
     | python -m json.tool 2>nul || %CURL% -s -X GET "%BASE_URL%/tasks/%ID%" -H "Authorization: Bearer %TOKEN%"
@@ -575,7 +569,6 @@ if not exist "%RESPONSE_FILE%" (
     goto UpdateTaskError
 )
 
-rem Проверяем, есть ли ошибка в ответе
 echo import json, sys > "%temp%\check_task.py"
 echo with open(sys.argv[1], 'r', encoding='utf-8') as f: >> "%temp%\check_task.py"
 echo     try: >> "%temp%\check_task.py"
@@ -1109,7 +1102,6 @@ echo ============================================
 echo            Server Metrics
 echo ============================================
 echo.
-rem Выводим метрики без постраничного просмотра
 set "FIRST_LINE=1"
 for /f "delims=" %%i in ('%CURL% -s "%BASE_URL%/metrics" 2^>nul') do (
     if "!FIRST_LINE!"=="1" set "FIRST_LINE=0"
@@ -1174,7 +1166,6 @@ if not exist "%RESPONSE_FILE%" (
     goto DeleteAccountMenuError
 )
 
-rem Анализируем ответ с помощью Python
 echo import json, sys > "%temp%\analyze_tasks.py"
 echo with open(sys.argv[1], 'r', encoding='utf-8') as f: >> "%temp%\analyze_tasks.py"
 echo     try: >> "%temp%\analyze_tasks.py"

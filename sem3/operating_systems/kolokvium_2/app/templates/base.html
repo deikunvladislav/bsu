@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Todo Manager - Organize Your Life{% endblock %}</title>
     
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>">
     
-    <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -72,7 +69,6 @@
             flex-direction: column;
         }
         
-        /* Modern Navigation */
         .navbar {
             background: var(--light);
             backdrop-filter: blur(10px);
@@ -158,14 +154,12 @@
             background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
         }
         
-        /* Main Content */
         .main-content {
             flex: 1;
             background: var(--light);
             transition: background-color 0.3s ease;
         }
         
-        /* Footer */
         .footer {
             background: var(--dark);
             color: white;
@@ -233,7 +227,6 @@
             color: var(--danger);
         }
         
-        /* Mobile Navigation */
         .nav-toggle {
             display: none;
             background: none;
@@ -271,7 +264,6 @@
             }
         }
         
-        /* Flash Messages */
         .flash-messages {
             position: fixed;
             top: 90px;
@@ -303,7 +295,6 @@
             }
         }
         
-        /* Theme Toggle */
         .theme-toggle {
             background: none;
             border: none;
@@ -319,7 +310,6 @@
             background: rgba(0, 0, 0, 0.05);
         }
         
-        /* Dark theme specific styles */
         [data-theme="dark"] .navbar {
             background: #1a202c;
             border-bottom-color: #2d3748;
@@ -359,7 +349,6 @@
             color: #e2e8f0;
         }
         
-        /* Cards and containers in dark theme */
         [data-theme="dark"] .auth-card,
         [data-theme="dark"] .dashboard-section,
         [data-theme="dark"] .stat-card,
@@ -515,10 +504,8 @@
                 <div class="footer-section">
                     <h3>Connect</h3>
                     <ul class="footer-links">
-                        <li><a href="#"><i class="fab fa-github"></i> GitHub</a></li>
-                        <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
-                        <li><a href="#"><i class="fab fa-discord"></i> Discord</a></li>
-                        <li><a href="mailto:support@todomanager.com"><i class="fas fa-envelope"></i> Email</a></li>
+                        <li><a href="https://github.com/deikunvladislav/bsu/tree/bsu/sem3/operating_systems/kolokvium_2"><i class="fab fa-github"></i> GitHub</a></li>
+                        <li><a href="https://t.me/jopacotik"><i class="fab fa-telegram"></i> Telegram</a></li>
                     </ul>
                 </div>
             </div>
@@ -533,7 +520,6 @@
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
     <script>
-        // Mobile navigation toggle
         const navToggle = document.getElementById('navToggle');
         const navLinks = document.getElementById('navLinks');
         
@@ -543,14 +529,12 @@
             });
         }
         
-        // Close mobile menu when clicking outside
         document.addEventListener('click', (e) => {
             if (!navToggle.contains(e.target) && !navLinks.contains(e.target)) {
                 navLinks.classList.remove('active');
             }
         });
         
-        // Theme toggle
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = themeToggle?.querySelector('i');
         
@@ -566,11 +550,9 @@
                     themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                 }
                 
-                // Show toast notification
                 showToast(`Switched to ${newTheme} theme`, 'success', 'Theme Changed');
             });
             
-            // Load saved theme
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             if (themeIcon) {
@@ -578,7 +560,6 @@
             }
         }
         
-        // Logout buttons
         const logoutButtons = document.querySelectorAll('#logout-btn, #footer-logout');
         logoutButtons.forEach(btn => {
             if (btn) {
@@ -605,16 +586,13 @@
             } catch (error) {
                 console.error('Logout error:', error);
             } finally {
-                // Clear local storage
                 localStorage.removeItem('jwt_token');
                 localStorage.removeItem('current_user');
                 
-                // Redirect to logout page
                 window.location.href = '/logout';
             }
         }
         
-        // Check API status
         async function checkApiStatus() {
             try {
                 const response = await fetch('/api/health/live');
@@ -634,10 +612,8 @@
             }
         }
         
-        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             checkApiStatus();
-            // Check every 30 seconds
             setInterval(checkApiStatus, 30000);
         });
     </script>

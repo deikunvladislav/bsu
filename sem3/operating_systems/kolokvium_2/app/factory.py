@@ -30,7 +30,6 @@ def create_app(config_name: str = None) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config)
     
-    # Set secret key for sessions
     app.secret_key = config.SECRET_KEY
     
     db.init_app(app)
@@ -42,12 +41,10 @@ def create_app(config_name: str = None) -> Flask:
     
     setup_error_handlers(app)
     
-    # Register API blueprints with /api prefix
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(tasks_bp, url_prefix="/api")
     app.register_blueprint(health_bp, url_prefix="/api/health")
     
-    # Register frontend blueprint
     app.register_blueprint(frontend_bp, url_prefix="")
     
     @app.before_request

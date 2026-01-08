@@ -42,7 +42,6 @@ if not exist "app\templates" mkdir "app\templates"
 if not exist "app\routes" mkdir "app\routes"
 
 echo [5] Creating basic CSS and JS files...
-REM CSS files will be created by Python script
 
 echo [6] Initializing database...
 echo Note: Database will be automatically created on first server start.

@@ -1,5 +1,3 @@
-// Tasks JavaScript
-
 function loadDashboardStats() {
     const token = localStorage.getItem('jwt_token');
     if (!token) return;
@@ -85,7 +83,6 @@ function loadRecentTasks() {
     });
 }
 
-// Helper function to escape HTML
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;

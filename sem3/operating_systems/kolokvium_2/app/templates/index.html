@@ -4,7 +4,6 @@
 
 {% block extra_css %}
 <style>
-/* Hero Section */
 .hero-section {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -104,7 +103,6 @@
     font-size: 14px;
 }
 
-/* Features Section */
 .features-section {
     padding: 100px 0;
     background: #f8f9fa;
@@ -199,7 +197,6 @@
     color: #06d6a0;
 }
 
-/* CTA Section */
 .cta-section {
     background: linear-gradient(135deg, #118ab2 0%, #0c7aa0 100%);
     color: white;
@@ -245,7 +242,6 @@
     box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
 }
 
-/* API Section */
 .api-section {
     padding: 100px 0;
     background: #212529;
@@ -306,7 +302,6 @@
     line-height: 1.5;
 }
 
-/* Stats Section */
 .stats-section {
     padding: 80px 0;
     background: #f8f9fa;
@@ -339,7 +334,6 @@
     font-weight: 500;
 }
 
-/* Testimonials */
 .testimonials-section {
     padding: 100px 0;
 }
@@ -397,7 +391,6 @@
     font-size: 14px;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .hero-title {
         font-size: 36px;
@@ -431,7 +424,6 @@
     }
 }
 
-/* Animations */
 @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-20px); }
@@ -444,7 +436,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <section class="hero-section">
     <div class="hero-content">
         <h1 class="hero-title">Organize Your Life,<br>One Task at a Time</h1>
@@ -485,7 +476,6 @@
     </div>
 </section>
 
-<!-- Features Section -->
 <section class="features-section">
     <div class="section-title">
         <h2>Everything You Need in One Place</h2>
@@ -537,7 +527,6 @@
     </div>
 </section>
 
-<!-- Stats Section -->
 <section class="stats-section">
     <div class="stats-grid">
         <div class="stat-item">
@@ -559,7 +548,6 @@
     </div>
 </section>
 
-<!-- API Section -->
 <section class="api-section">
     <div class="api-content">
         <h2><i class="fas fa-code"></i> Developer Friendly API</h2>
@@ -613,7 +601,6 @@ Response: [{
     </div>
 </section>
 
-<!-- CTA Section -->
 <section class="cta-section">
     <div class="cta-content">
         <h2>Ready to Boost Your Productivity?</h2>
@@ -631,7 +618,6 @@ Response: [{
     </div>
 </section>
 
-<!-- Testimonials -->
 <section class="testimonials-section">
     <div class="section-title">
         <h2>Loved by Productivity Enthusiasts</h2>
@@ -657,12 +643,9 @@ Response: [{
 </section>
 
 <script>
-// Animate stats
 document.addEventListener('DOMContentLoaded', function() {
-    // Check API status
     checkApiStatus();
     
-    // Animate stats
     animateCounter('users-count', 1000, 1500, '+');
     animateCounter('tasks-count', 50000, 2000, '+');
 });
@@ -689,7 +672,7 @@ function animateCounter(elementId, target, duration, suffix = '') {
     if (!element) return;
     
     const start = 0;
-    const increment = target / (duration / 16); // 60fps
+    const increment = target / (duration / 16);
     let current = start;
     
     const timer = setInterval(() => {

@@ -526,7 +526,6 @@ Authorization: Bearer <span class="string">your_jwt_token_here</span>
 </div>
 
 <script>
-// Smooth scrolling for anchor links
 document.querySelectorAll('.api-nav a').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
         e.preventDefault();
@@ -535,11 +534,9 @@ document.querySelectorAll('.api-nav a').forEach(anchor => {
         const targetElement = document.querySelector(targetId);
         
         if (targetElement) {
-            // Update active nav item
             document.querySelectorAll('.api-nav a').forEach(a => a.classList.remove('active'));
             this.classList.add('active');
             
-            // Scroll to section
             window.scrollTo({
                 top: targetElement.offsetTop - 100,
                 behavior: 'smooth'
@@ -548,7 +545,6 @@ document.querySelectorAll('.api-nav a').forEach(anchor => {
     });
 });
 
-// Update active nav based on scroll
 window.addEventListener('scroll', function() {
     const sections = document.querySelectorAll('.api-section');
     const navLinks = document.querySelectorAll('.api-nav a');
@@ -570,7 +566,6 @@ window.addEventListener('scroll', function() {
     });
 });
 
-// Copy code blocks on click
 document.querySelectorAll('.code-block').forEach(block => {
     block.addEventListener('click', function() {
         const text = this.textContent;

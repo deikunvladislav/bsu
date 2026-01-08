@@ -84,14 +84,12 @@
             </div>
             <div class="recent-tasks-container">
                 <div id="recent-tasks-list" class="tasks-list">
-                    <!-- Tasks will be loaded here -->
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Task Modal -->
 <div id="taskModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -137,18 +135,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard loaded');
     
-    // Check if user is logged in
     const token = localStorage.getItem('jwt_token');
     if (!token) {
         console.log('No JWT token found, user might not be logged in');
-        // Don't redirect, let the server handle it
     }
     
-    // Load initial data if token exists
     if (token) {
         loadDashboardData();
     } else {
-        // Show message for non-logged in users
         document.getElementById('recent-tasks-list').innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-sign-in-alt"></i>
@@ -162,14 +156,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupEventListeners() {
-    // Modal elements
     const modal = document.getElementById('taskModal');
     const createBtn = document.getElementById('create-task-btn');
     const closeBtns = document.querySelectorAll('.close-modal');
     const refreshBtn = document.getElementById('refresh-btn');
     const taskForm = document.getElementById('taskForm');
     
-    // Create task button
     if (createBtn) {
         createBtn.addEventListener('click', function() {
             modal.style.display = 'block';
@@ -177,7 +169,6 @@ function setupEventListeners() {
         });
     }
     
-    // Close modal buttons
     closeBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             modal.style.display = 'none';
@@ -185,7 +176,6 @@ function setupEventListeners() {
         });
     });
     
-    // Close modal when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target === modal) {
             modal.style.display = 'none';
@@ -193,12 +183,10 @@ function setupEventListeners() {
         }
     });
     
-    // Task form submission
     if (taskForm) {
         taskForm.addEventListener('submit', handleTaskSubmit);
     }
     
-    // Refresh button
     if (refreshBtn) {
         refreshBtn.addEventListener('click', function() {
             loadDashboardData();
@@ -247,17 +235,13 @@ async function handleTaskSubmit(e) {
         const result = await response.json();
         
         if (response.ok && result.success) {
-            // Success!
             showToast('Task created successfully!', 'success', 'Success');
             
-            // Close modal and reset form
             document.getElementById('taskModal').style.display = 'none';
             document.getElementById('taskForm').reset();
             
-            // Refresh data
             loadDashboardData();
         } else {
-            // Handle error
             const errorMessage = result.message || 'Failed to create task';
             showToast(`Error: ${errorMessage}`, 'error', 'Error');
         }
@@ -302,7 +286,6 @@ async function loadStats() {
             if (result.success) {
                 const stats = result.data;
                 
-                // Update counters
                 document.getElementById('todo-count').textContent = stats.todo || 0;
                 document.getElementById('progress-count').textContent = stats.in_progress || 0;
                 document.getElementById('done-count').textContent = stats.done || 0;
@@ -415,7 +398,6 @@ function escapeHtml(text) {
 </script>
 
 <style>
-/* Dashboard specific styles */
 .dashboard {
     padding: 2rem 0;
 }
@@ -440,7 +422,6 @@ function escapeHtml(text) {
     font-weight: 600;
 }
 
-/* Stats grid */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -504,7 +485,6 @@ function escapeHtml(text) {
     margin: 0;
 }
 
-/* Dashboard actions */
 .dashboard-actions {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -531,7 +511,6 @@ function escapeHtml(text) {
     gap: 1rem;
 }
 
-/* Task list */
 .tasks-list {
     max-height: 400px;
     overflow-y: auto;
@@ -627,7 +606,6 @@ function escapeHtml(text) {
     opacity: 1;
 }
 
-/* Modals */
 .modal {
     display: none;
     position: fixed;
@@ -695,7 +673,6 @@ function escapeHtml(text) {
     padding: 1.5rem;
 }
 
-/* Tasks page specific */
 .tasks-page {
     padding: 2rem 0;
 }
@@ -767,12 +744,10 @@ function escapeHtml(text) {
     font-weight: 500;
 }
 
-/* Status colors */
 .task-todo { border-left: 4px solid var(--danger-color); }
 .task-in_progress { border-left: 4px solid var(--warning-color); }
 .task-done { border-left: 4px solid var(--success-color); }
 
-/* Additional styles for dashboard */
 .dashboard-container {
     max-width: 1200px;
     margin: 0 auto;

@@ -77,7 +77,6 @@ def login():
             }
         )
         
-        # Set user_id in session for web interface
         session['user_id'] = user.id
         
         return jsonify({
@@ -92,7 +91,6 @@ def login():
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout_api():
-    """API logout endpoint"""
     session.pop('user_id', None)
     return jsonify({"message": "Logged out successfully"}), 200
 
@@ -149,7 +147,6 @@ def change_password():
 @auth_bp.route("/delete-account", methods=["DELETE"])
 @jwt_required()
 def delete_user_account():
-    """Delete user account"""
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
     
@@ -157,13 +154,10 @@ def delete_user_account():
         raise APIError("User not found", 404, "USER_NOT_FOUND")
     
     try:
-        # Delete all user's tasks first
         Task.query.filter_by(user_id=current_user_id).delete()
-        # Delete user
         db.session.delete(user)
         db.session.commit()
         
-        # Clear session
         session.pop('user_id', None)
         
         return jsonify({

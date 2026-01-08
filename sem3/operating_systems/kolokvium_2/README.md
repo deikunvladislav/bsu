@@ -10,7 +10,7 @@ Todo API is a production-ready web application that combines a modern Flask REST
 
 ## 📁 Project Structure
 
-```
+```bash
 kolokvium_2/
 ├── app/                            # Main application package
 │   ├── routes/                     # API route handlers

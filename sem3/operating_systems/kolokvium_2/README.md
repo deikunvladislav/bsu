@@ -1,4 +1,3 @@
-```markdown
 # Kolokvium 2 - Flask REST API with JWT Authentication & Web Interface
 
 **Belarusian State University, Faculty of Applied Mathematics and Computer Science, Department of Programming Technology**  

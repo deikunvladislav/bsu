@@ -1,0 +1,84 @@
+{
+ "cells": [
+  {
+   "kind": 2,
+   "value": "(* task 1 *)\r\n\r\nExpand[(x - 2)^4]\r\n\r\nExpand[(x + Cos[x] - Sin[x])^4]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* task 2 *)\r\n\r\nexpr = ((x + a)^2 + y)^3\r\nexpanded = Expand[expr]\r\nCollect[expanded, a]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* task 3 *)\r\n\r\npoly = (x^2 + 2 x + 1) a^3 + (3 y^2 + 6 y + 3) y^a + \r\n       (3 y^2 x^2 + 6 y^2 x + 3 y^2) a + x^2 y^3 + 2 x y^3 + y^3\r\nSimplify[poly]\r\nFactor[poly]\r\n\r\nexpr = Cos[x]^4 + Sin[x]^4 - 6 Sin[x]^2 Cos[x]^2\r\nFactor[expr]\r\nTrigReduce[expr]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* task 4 *)\r\n\r\nexpr = (Cos[y]^4 + 2 Sin[y] Cos[y]^3 + Sin[y]^4 - \r\n        2 Cos[y]^2 Sin[y]^2 - 2 Cos[y] Sin[y]^3) / \r\n       (Cos[y]^2 - Sin[y]^2) - 2 Cos[y] Sin[y]\r\nTrigReduce[expr]\r\nSimplify[expr]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* task 5 *)\r\n\r\nexpr = (Cos[y]^4 + 2 Sin[y] Cos[y]^3 + Sin[y]^4 - \r\n        2 Cos[y]^2 Sin[y]^2 - 2 Cos[y] Sin[y]^3) / \r\n       (Cos[y]^2 - Sin[y]^2) - 2 Cos[y] Sin[y]\r\nTrigReduce[expr]\r\nSimplify[expr]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* task 6 *)\r\n\r\nD[Sin[x], x]\r\n\r\nD[f[g[x]], x]\r\n\r\nD[Sin[x y], {x, 2}, y]\r\n\r\nD[Log[(x - 3)/(x + 3)], {x, 2}]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* task 7 *)\r\n\r\nIntegrate[x^2/(x + a)^3, x]\r\n\r\nIntegrate[x^2/Sqrt[a x + b], x]\r\n\r\nIntegrate[Sin[α x]/x, x]\r\n\r\nIntegrate[x Sin[α x]/(x^2 + β^2), x]\r\n\r\nIntegrate[x E^(α x) Sin[b x]/x, x]\r\n\r\nIntegrate[ArcSin[x], x]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* task 8 *)\r\nSeries[Exp[x], {x, 0, 7}] // Normal\r\n\r\nSeries[Sqrt[x], {x, 4, 5}] // Normal\r\n\r\nSeries[Sin[Sin[x]], {x, 0, 5}] // Normal\r\n\r\ntanSeries = Series[Tan[x], {x, 0, 9}] // Normal\r\n\r\nSeries[ArcTan[x], {x, 0, 9}] // Normal",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* task 9 *)\r\n\r\nsinSeries = Series[Sin[x], {x, 0, 9}] // Normal\r\ncosSeries = Series[Cos[x], {x, 0, 9}] // Normal\r\n\r\nSeries[Sin[cosSeries], {x, 0, 9}] // Normal\r\n\r\nSeries[Cos[sinSeries], {x, 0, 9}] // Normal",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* task 10 *)\r\n\r\nSum[1/n^2, {n, 1, Infinity}]\r\n\r\nSum[Sin[n x]/n, {n, 1, Infinity}]\r\n\r\nProduct[1 - x^2/(n^2 Pi^2), {n, 1, Infinity}]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  }
+ ]
+}

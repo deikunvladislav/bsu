@@ -23,9 +23,9 @@ col_perm = list(range(n))
 swaps = 0
 pivots = []
 
-# --- FORWARD ELIMINATION (Single division scheme) ---
+# --- FORWARD ELIMINATION ---
 for k in range(n):
-    # Row pivoting: find max element in the row
+    # find max element in the row
     max_val = abs(Aug[k][k])
     pivot_col = k
     for j in range(k + 1, n):
@@ -89,13 +89,12 @@ for col in range(n):
     for i in range(n):
         Z[i][col] = y_vec[i]
 
-# Recover A_inv by permuting rows of Z
+# Recover A_inv
 A_inv = [[0.0] * n for _ in range(n)]
 for i in range(n):
     for j in range(n):
-        A_inv[col_perm[i]][j] = Z[i][j]
+        A_inv[i][col_perm[j]] = Z[i][j]
 
-# --- RESIDUALS ---
 # r = Ax - b
 r_x = [0.0] * n
 for i in range(n):

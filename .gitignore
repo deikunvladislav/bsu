@@ -1,11 +1,5 @@
 # === exclude all files except CMakeLists.txt & CMakePresets.json ===
-*.txt
-*.json
-*.xml
-*.zip
 *.gz
-*.enc
-*.db
 *.env
 !CMakePresets.json
 !CMakeLists.txt
@@ -56,3 +50,17 @@ libs/
 external/
 vendor/
 boost/
+
+# === exclude third-party files ===
+*.zip
+*.txt
+*.json
+*.xml
+*.db
+*.sav
+*.enc
+*.xlsx
+
+# === exclude images ===
+*.png
+*.jpg

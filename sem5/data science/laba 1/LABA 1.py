@@ -12,9 +12,6 @@ from scipy import stats
 
 warnings.filterwarnings('ignore')
 
-# =============================================================
-# НАСТРОЙКИ
-# =============================================================
 SAV_PATH = r'C:\Users\HP\source\repos\bsu\sem5\data science\laba 1\Annual 2005-2011_START.sav'
 TARGET_OUTLIER_FRACTION = (0.05, 0.08)
 INVERSE_RATIOS = {'k5', 'k6', 'k7'}
@@ -26,9 +23,6 @@ FIG_DIR    = os.path.join(RESULT_DIR, 'графики')
 os.makedirs(TABLE_DIR, exist_ok=True)
 os.makedirs(FIG_DIR, exist_ok=True)
 
-# =============================================================
-# ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-# =============================================================
 def save_table(df, name, index=False):
     xlsx_path = os.path.join(TABLE_DIR, name + '.xlsx')
     try:
@@ -53,7 +47,6 @@ def extract_financial_ratios(df):
             cols.append((int(m.group(1)), col))
     if not cols:
         raise ValueError("Не найдено ни одного коэффициента K1..K20.")
-    # --- СОРТИРОВКА УБРАНА ---
     selected = [c[1] for c in cols]
     print(f"Найдены коэффициенты: {selected}")
     df_k = df[selected].copy()
@@ -61,9 +54,6 @@ def extract_financial_ratios(df):
         df_k[c] = pd.to_numeric(df_k[c], errors='coerce')
     return df_k.replace([np.inf, -np.inf], np.nan)
 
-# =============================================================
-# ПРЕДВАРИТЕЛЬНЫЙ АНАЛИЗ (СЫРЫЕ ДАННЫЕ)
-# =============================================================
 def descriptive_stats(df):
     rows = []
     for col in df.columns:
@@ -98,12 +88,6 @@ def chi2_normality(x, bins=12):
     return chi2, 1 - stats.chi2.cdf(chi2, df_chi)
 
 def normality_tests(df):
-    """
-    Проверка нормальности:
-      - Шапиро-Уилк
-      - Колмогоров-Смирнов
-      - Хи-квадрат
-    """
     rows = []
     for col in df.columns:
         x = df[col].dropna().values
@@ -176,20 +160,10 @@ def save_boxplots(df, fig_dir, prefix=''):
         plt.close()
 
 def normality_flags(df):
-    """
-    Возвращает словарь: {имя_коэффициента: True/False},
-    где True — коэффициент нормален по совокупности тестов из normality_tests.
-    """
     tests = normality_tests(df)
     return dict(zip(tests['Коэффициент'], tests['Нормально_0.05']))
 
 def mixed_corr_and_pvalues(df, normal_map):
-    """
-    Считает матрицу корреляций, p-value и матрицу методов.
-    Для пары:
-      - если оба коэффициента нормальны -> Pearson
-      - иначе -> Spearman
-    """
     cols = df.columns
     corr = pd.DataFrame(np.nan, index=cols, columns=cols, dtype=float)
     pvals = pd.DataFrame(np.nan, index=cols, columns=cols, dtype=float)
@@ -273,9 +247,6 @@ def plot_corr_heatmap(corr, path, title):
     plt.savefig(path, dpi=150, bbox_inches='tight')
     plt.close()
 
-# =============================================================
-# ЦЕНЗУРИРОВАНИЕ И НОРМИРОВКА
-# =============================================================
 def hampel_bounds_for_series(series, target=TARGET_OUTLIER_FRACTION):
     x = series.dropna().values
     if len(x) == 0: return np.nan, np.nan, 5.2
@@ -328,16 +299,13 @@ def normalize_data(df_c, bounds):
         df_n[col] = df_n[col].clip(0, 1)
     return df_n
 
-# =============================================================
-# ГЛАВНЫЙ БЛОК ЗАПУСКА
-# =============================================================
 def main():
     # 1. Загрузка
     df, _ = load_sav(SAV_PATH)
     df_k = extract_financial_ratios(df)
     save_table(df_k, '01_исходные_коэффициенты')
 
-    # 2. Предварительный анализ (сырые данные)
+    # 2. Предварительный анализ 
     print("\n=== Анализ СЫРЫХ данных ===")
     save_table(descriptive_stats(df_k), '02_описательные_статистики_исходные')
     save_table(normality_tests(df_k), '03_проверка_нормальности_исходные')
@@ -356,7 +324,7 @@ def main():
     save_table(df_norm, '06_нормированные')
     print(f"Цензурирование и нормировка выполнены. Строк: {len(df_norm)}")
 
-    # 4. Корреляционный анализ (нормированные данные)
+    # 4. Корреляционный анализ 
     print("\n=== Корреляции по НОРМИРОВАННЫМ данным ===")
     print("Для нормальных пар — Pearson, для остальных — Spearman")
 

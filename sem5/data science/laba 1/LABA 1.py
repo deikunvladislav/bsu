@@ -46,7 +46,7 @@ def drop_unwanted_columns(df):
         drop_cols.add(first_col)
     if last_col is not None:
         drop_cols.add(last_col)
-    keywords = ['year', 'год', 'employees', 'работник', 'сотрудник', 'численность', 'персонал']
+    keywords = ['year', 'Среднеспис.числ.работн']
     for col in df.columns:
         col_lower = str(col).lower()
         if any(kw in col_lower for kw in keywords):

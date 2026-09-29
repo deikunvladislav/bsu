@@ -54,7 +54,6 @@ def extract_financial_ratios(df):
     if not cols:
         raise ValueError("Не найдено ни одного коэффициента K1..K20.")
     # --- СОРТИРОВКА УБРАНА ---
-    # cols.sort(key=lambda x: x[0])
     selected = [c[1] for c in cols]
     print(f"Найдены коэффициенты: {selected}")
     df_k = df[selected].copy()
@@ -101,13 +100,13 @@ def chi2_normality(x, bins=10):
 def normality_tests(df):
     """
     Проверка нормальности:
-      - Шапиро-Уилк (на полной выборке, без сэмплирования)
-      - Колмогоров-Смирнов (через lambda, чтобы не зависеть от версии scipy)
+      - Шапиро-Уилк 
+      - Колмогоров-Смирнов 
       - Хи-квадрат
     """
     rows = []
     for col in df.columns:
-        x = df[col].dropna().values  # numpy array
+        x = df[col].dropna().values 
         if len(x) < 3:
             continue
 
@@ -125,7 +124,6 @@ def normality_tests(df):
             ks_s, p_ks = np.nan, np.nan
         else:
             try:
-                # Используем lambda вместо args — это работает во всех версиях scipy
                 ks_s, p_ks = stats.kstest(
                     x, 
                     lambda v: stats.norm.cdf(v, loc=x.mean(), scale=std_val)
@@ -200,7 +198,6 @@ def find_strong_correlations(corr, pvals, threshold=0.7):
 
 def plot_corr_heatmap(corr, path, title):
     plt.figure(figsize=(16, 13))
-    # Если хочешь положительные синим, а отрицательные красным — замени на cmap='RdBu'
     sns.heatmap(corr, cmap='RdBu_r', center=0, vmin=-1, vmax=1,
                 annot=True, fmt='.2f', annot_kws={'size': 7},
                 square=True, linewidths=0.5, linecolor='white',

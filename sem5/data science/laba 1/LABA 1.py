@@ -100,17 +100,17 @@ def chi2_normality(x, bins=10):
 def normality_tests(df):
     """
     Проверка нормальности:
-      - Шапиро-Уилк 
-      - Колмогоров-Смирнов 
+      - Шапиро-Уилк
+      - Колмогоров-Смирнов
       - Хи-квадрат
     """
     rows = []
     for col in df.columns:
-        x = df[col].dropna().values 
+        x = df[col].dropna().values
         if len(x) < 3:
             continue
 
-        # --- Шапиро-Уилк (без предподготовки) ---
+        # --- Шапиро-Уилк ---
         try:
             W, p_sh = stats.shapiro(x)
         except Exception as e:
@@ -125,7 +125,7 @@ def normality_tests(df):
         else:
             try:
                 ks_s, p_ks = stats.kstest(
-                    x, 
+                    x,
                     lambda v: stats.norm.cdf(v, loc=x.mean(), scale=std_val)
                 )
             except Exception as e:
@@ -175,33 +175,97 @@ def save_boxplots(df, fig_dir, prefix=''):
         plt.savefig(os.path.join(fig_dir, f'{prefix}box_{col}.png'), dpi=150, bbox_inches='tight')
         plt.close()
 
-def corr_pvalues(df):
-    cols = df.columns
-    pvals = pd.DataFrame(np.ones((len(cols), len(cols))), columns=cols, index=cols)
-    for i in range(len(cols)):
-        for j in range(i + 1, len(cols)):
-            common = df[cols[i]].dropna().index.intersection(df[cols[j]].dropna().index)
-            if len(common) < 3: p = np.nan
-            else: _, p = stats.pearsonr(df.loc[common, cols[i]], df.loc[common, cols[j]])
-            pvals.iloc[i, j] = pvals.iloc[j, i] = p
-    return pvals
+def normality_flags(df):
+    """
+    Возвращает словарь: {имя_коэффициента: True/False},
+    где True — коэффициент нормален по совокупности тестов из normality_tests.
+    """
+    tests = normality_tests(df)
+    return dict(zip(tests['Коэффициент'], tests['Нормально_0.05']))
 
-def find_strong_correlations(corr, pvals, threshold=0.7):
+def mixed_corr_and_pvalues(df, normal_map):
+    """
+    Считает матрицу корреляций, p-value и матрицу методов.
+    Для пары:
+      - если оба коэффициента нормальны -> Pearson
+      - иначе -> Spearman
+    """
+    cols = df.columns
+    corr = pd.DataFrame(np.nan, index=cols, columns=cols, dtype=float)
+    pvals = pd.DataFrame(np.nan, index=cols, columns=cols, dtype=float)
+    methods = pd.DataFrame('', index=cols, columns=cols, dtype=object)
+
+    for i, c1 in enumerate(cols):
+        corr.loc[c1, c1] = 1.0
+        pvals.loc[c1, c1] = 0.0
+        methods.loc[c1, c1] = '—'
+
+        for j in range(i + 1, len(cols)):
+            c2 = cols[j]
+            common = df[[c1, c2]].dropna().index
+
+            if len(common) < 3:
+                r, p, m = np.nan, np.nan, 'NA'
+            else:
+                if normal_map.get(c1, False) and normal_map.get(c2, False):
+                    m = 'pearson'
+                else:
+                    m = 'spearman'
+
+                x = df.loc[common, c1].astype(float).values
+                y = df.loc[common, c2].astype(float).values
+
+                try:
+                    if m == 'pearson':
+                        r, p = stats.pearsonr(x, y)
+                    else:
+                        r, p = stats.spearmanr(x, y)
+                except Exception as e:
+                    print(f"  ! Ошибка корреляции {c1}-{c2} ({m}): {e}")
+                    r, p = np.nan, np.nan
+
+            corr.loc[c1, c2] = corr.loc[c2, c1] = r
+            pvals.loc[c1, c2] = pvals.loc[c2, c1] = p
+            methods.loc[c1, c2] = methods.loc[c2, c1] = m
+
+    return corr, pvals, methods
+
+def find_strong_correlations(corr, pvals, methods=None, threshold=0.7):
     pairs = []
     cols = corr.columns
+
     for i in range(len(cols)):
         for j in range(i + 1, len(cols)):
             r = corr.iloc[i, j]
+            if pd.isna(r):
+                continue
+
             if abs(r) > threshold:
-                pairs.append({'K1': cols[i], 'K2': cols[j], 'r': r, 'p': pvals.iloc[i, j], '|r|': abs(r)})
-    return pd.DataFrame(pairs).sort_values('|r|', ascending=False) if pairs else pd.DataFrame(columns=['K1', 'K2', 'r', 'p', '|r|'])
+                row = {
+                    'K1': cols[i],
+                    'K2': cols[j],
+                    'r': r,
+                    'p': pvals.iloc[i, j],
+                    '|r|': abs(r)
+                }
+                if methods is not None:
+                    row['Метод'] = methods.iloc[i, j]
+                pairs.append(row)
+
+    if pairs:
+        return pd.DataFrame(pairs).sort_values('|r|', ascending=False)
+
+    cols_out = ['K1', 'K2', 'r', 'p', '|r|']
+    if methods is not None:
+        cols_out.append('Метод')
+    return pd.DataFrame(columns=cols_out)
 
 def plot_corr_heatmap(corr, path, title):
     plt.figure(figsize=(16, 13))
     sns.heatmap(corr, cmap='RdBu_r', center=0, vmin=-1, vmax=1,
                 annot=True, fmt='.2f', annot_kws={'size': 7},
                 square=True, linewidths=0.5, linecolor='white',
-                cbar_kws={'shrink': 0.8, 'label': 'Pearson r'})
+                cbar_kws={'shrink': 0.8, 'label': 'Correlation coefficient'})
     plt.title(title, fontsize=14)
     plt.xticks(rotation=45, ha='right', fontsize=9)
     plt.yticks(rotation=0, fontsize=9)
@@ -294,19 +358,31 @@ def main():
 
     # 4. Корреляционный анализ (нормированные данные)
     print("\n=== Корреляции по НОРМИРОВАННЫМ данным ===")
-    corr_n = df_norm.corr(method='pearson')
-    pvals_n = corr_pvalues(df_norm)
+    print("Для нормальных пар — Pearson, для остальных — Spearman")
+
+    normal_flags = normality_flags(df_k)
+
+    save_table(
+        pd.DataFrame({
+            'Коэффициент': list(normal_flags.keys()),
+            'Нормально_0.05': list(normal_flags.values())
+        }),
+        '10_нормальность_для_выбора_корреляции'
+    )
+
+    corr_n, pvals_n, methods_n = mixed_corr_and_pvalues(df_norm, normal_flags)
 
     save_table(corr_n, '07_матрица_корреляций_нормированные', index=True)
     save_table(pvals_n, '08_p_value_корреляций_нормированные', index=True)
+    save_table(methods_n, '09_методы_корреляций_нормированные', index=True)
 
-    strong_n = find_strong_correlations(corr_n, pvals_n, threshold=0.7)
-    save_table(strong_n, '09_сильные_корреляции_нормированные')
+    strong_n = find_strong_correlations(corr_n, pvals_n, methods_n, threshold=0.7)
+    save_table(strong_n, '11_сильные_корреляции_нормированные')
 
     plot_corr_heatmap(
         corr_n,
         os.path.join(FIG_DIR, 'тепловая_карта_нормированные.png'),
-        'Матрица парных корреляций Пирсона (по нормированным данным)'
+        'Матрица корреляций: Pearson для нормальных пар, Spearman для остальных'
     )
 
     print(f"\n=== ГОТОВО ===\nТаблицы: {TABLE_DIR}\nГрафики: {FIG_DIR}")

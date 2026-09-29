@@ -76,7 +76,7 @@ def descriptive_stats(df):
         })
     return pd.DataFrame(rows)
 
-def chi2_normality(x, bins=10):
+def chi2_normality(x, bins=12):
     n = len(x)
     mu, sigma = x.mean(), x.std(ddof=1)
     probs = np.linspace(0, 1, bins + 1)

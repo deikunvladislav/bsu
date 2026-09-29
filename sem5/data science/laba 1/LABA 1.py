@@ -39,20 +39,12 @@ def load_sav(path):
     return df, meta
 
 def extract_financial_ratios(df):
-    pattern = re.compile(r'^[Kk]_?(\d{1,2})(_n)?$')
-    cols = []
-    for col in df.columns:
-        m = pattern.match(col)
-        if m and 1 <= int(m.group(1)) <= 20:
-            cols.append((int(m.group(1)), col))
-    if not cols:
-        raise ValueError("Не найдено ни одного коэффициента K1..K20.")
-    selected = [c[1] for c in cols]
-    print(f"Найдены коэффициенты: {selected}")
-    df_k = df[selected].copy()
+    df_k = df.copy()
     for c in df_k.columns:
         df_k[c] = pd.to_numeric(df_k[c], errors='coerce')
-    return df_k.replace([np.inf, -np.inf], np.nan)
+    df_k = df_k.replace([np.inf, -np.inf], np.nan)
+    print(f"Столбцов: {len(df_k.columns)}")
+    return df_k
 
 def descriptive_stats(df):
     rows = []
@@ -94,14 +86,12 @@ def normality_tests(df):
         if len(x) < 3:
             continue
 
-        # --- Шапиро-Уилк ---
         try:
             W, p_sh = stats.shapiro(x)
         except Exception as e:
             print(f"  ! Ошибка Шапиро для {col}: {e}")
             W, p_sh = np.nan, np.nan
 
-        # --- Колмогоров-Смирнов ---
         std_val = x.std(ddof=1)
         if std_val == 0 or np.isnan(std_val):
             print(f"  ! Предупреждение: std=0 для {col}, KS пропущен.")
@@ -116,7 +106,6 @@ def normality_tests(df):
                 print(f"  ! Ошибка KS для {col}: {e}")
                 ks_s, p_ks = np.nan, np.nan
 
-        # --- Хи-квадрат ---
         try:
             chi2, p_chi2 = chi2_normality(x)
         except Exception as e:
@@ -273,7 +262,8 @@ def compute_bounds_all(df_k):
         x = df_k[col].dropna()
         frac = float(np.mean((x < lower) | (x > upper))) if len(x) else np.nan
         rows.append({
-            'Коэффициент': col, 'Медиана': np.median(x), 'MAD': np.median(np.abs(x - np.median(x))),
+            'Коэффициент': col, 'Медиана': np.median(x) if len(x) else np.nan,
+            'MAD': np.median(np.abs(x - np.median(x))) if len(x) else np.nan,
             'c': c, 'K_min': lower, 'K_max': upper, 'Доля за границами': frac
         })
         print(f"  {col:>4s}: c={c:4.2f}, Kmin={lower:10.4f}, Kmax={upper:10.4f}, выбросов={frac:.2%}")
@@ -289,8 +279,8 @@ def normalize_data(df_c, bounds):
     df_n = df_c.copy()
     for col in df_n.columns:
         lower, upper, _ = bounds[col]
-        if upper - lower == 0:
-            df_n[col] = 0.0
+        if upper - lower == 0 or np.isnan(upper - lower):
+            df_n[col] = np.nan
             continue
         if col.lower() in INVERSE_RATIOS:
             df_n[col] = (upper - df_n[col]) / (upper - lower)
@@ -300,19 +290,16 @@ def normalize_data(df_c, bounds):
     return df_n
 
 def main():
-    # 1. Загрузка
     df, _ = load_sav(SAV_PATH)
     df_k = extract_financial_ratios(df)
     save_table(df_k, '01_исходные_коэффициенты')
 
-    # 2. Предварительный анализ 
     print("\n=== Анализ СЫРЫХ данных ===")
     save_table(descriptive_stats(df_k), '02_описательные_статистики_исходные')
     save_table(normality_tests(df_k), '03_проверка_нормальности_исходные')
     save_histograms(df_k, FIG_DIR, prefix='raw_')
     save_boxplots(df_k, FIG_DIR, prefix='raw_')
 
-    # 3. Цензурирование и нормировка
     print("\n=== Цензурирование и нормировка ===")
     bounds, bounds_info = compute_bounds_all(df_k)
     save_table(bounds_info, '04_границы_цензурирования')
@@ -324,7 +311,6 @@ def main():
     save_table(df_norm, '06_нормированные')
     print(f"Цензурирование и нормировка выполнены. Строк: {len(df_norm)}")
 
-    # 4. Корреляционный анализ 
     print("\n=== Корреляции по НОРМИРОВАННЫМ данным ===")
     print("Для нормальных пар — Pearson, для остальных — Spearman")
 

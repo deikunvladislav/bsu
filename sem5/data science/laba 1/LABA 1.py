@@ -38,6 +38,26 @@ def load_sav(path):
     print(f"Загружено: {df.shape[0]} строк, {df.shape[1]} столбцов")
     return df, meta
 
+def drop_unwanted_columns(df):
+    first_col = df.columns[0] if len(df.columns) > 0 else None
+    last_col = df.columns[-1] if len(df.columns) > 0 else None
+    drop_cols = set()
+    if first_col is not None:
+        drop_cols.add(first_col)
+    if last_col is not None:
+        drop_cols.add(last_col)
+    keywords = ['year', 'год', 'employees', 'работник', 'сотрудник', 'численность', 'персонал']
+    for col in df.columns:
+        col_lower = str(col).lower()
+        if any(kw in col_lower for kw in keywords):
+            drop_cols.add(col)
+    if drop_cols:
+        print(f"Удаляются столбцы: {sorted(drop_cols)}")
+        df = df.drop(columns=list(drop_cols))
+    else:
+        print("Нет столбцов для удаления.")
+    return df
+
 def extract_financial_ratios(df):
     df_k = df.copy()
     for c in df_k.columns:
@@ -291,6 +311,7 @@ def normalize_data(df_c, bounds):
 
 def main():
     df, _ = load_sav(SAV_PATH)
+    df = drop_unwanted_columns(df)
     df_k = extract_financial_ratios(df)
     save_table(df_k, '01_исходные_коэффициенты')
 

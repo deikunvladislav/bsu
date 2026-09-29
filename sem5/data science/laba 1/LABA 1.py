@@ -53,7 +53,8 @@ def extract_financial_ratios(df):
             cols.append((int(m.group(1)), col))
     if not cols:
         raise ValueError("Не найдено ни одного коэффициента K1..K20.")
-    cols.sort(key=lambda x: x[0])
+    # --- СОРТИРОВКА УБРАНА ---
+    # cols.sort(key=lambda x: x[0])
     selected = [c[1] for c in cols]
     print(f"Найдены коэффициенты: {selected}")
     df_k = df[selected].copy()
@@ -97,21 +98,57 @@ def chi2_normality(x, bins=10):
     df_chi = max(len(obs) - 3, 1)
     return chi2, 1 - stats.chi2.cdf(chi2, df_chi)
 
-def normality_tests(df, max_shapiro=5000):
+def normality_tests(df):
+    """
+    Проверка нормальности:
+      - Шапиро-Уилк (на полной выборке, без сэмплирования)
+      - Колмогоров-Смирнов (через lambda, чтобы не зависеть от версии scipy)
+      - Хи-квадрат
+    """
     rows = []
     for col in df.columns:
-        x = df[col].dropna()
-        if len(x) < 3: continue
-        x_sh = x.sample(max_shapiro, random_state=42) if len(x) > max_shapiro else x
-        try: W, p_sh = stats.shapiro(x_sh)
-        except: W, p_sh = np.nan, np.nan
-        try: ks_s, p_ks = stats.kstest(x, 'norm', args=(x.mean(), x.std(ddof=1)))
-        except: ks_s, p_ks = np.nan, np.nan
-        try: chi2, p_chi2 = chi2_normality(x)
-        except: chi2, p_chi2 = np.nan, np.nan
+        x = df[col].dropna().values  # numpy array
+        if len(x) < 3:
+            continue
+
+        # --- Шапиро-Уилк (без предподготовки) ---
+        try:
+            W, p_sh = stats.shapiro(x)
+        except Exception as e:
+            print(f"  ! Ошибка Шапиро для {col}: {e}")
+            W, p_sh = np.nan, np.nan
+
+        # --- Колмогоров-Смирнов ---
+        std_val = x.std(ddof=1)
+        if std_val == 0 or np.isnan(std_val):
+            print(f"  ! Предупреждение: std=0 для {col}, KS пропущен.")
+            ks_s, p_ks = np.nan, np.nan
+        else:
+            try:
+                # Используем lambda вместо args — это работает во всех версиях scipy
+                ks_s, p_ks = stats.kstest(
+                    x, 
+                    lambda v: stats.norm.cdf(v, loc=x.mean(), scale=std_val)
+                )
+            except Exception as e:
+                print(f"  ! Ошибка KS для {col}: {e}")
+                ks_s, p_ks = np.nan, np.nan
+
+        # --- Хи-квадрат ---
+        try:
+            chi2, p_chi2 = chi2_normality(x)
+        except Exception as e:
+            print(f"  ! Ошибка Chi2 для {col}: {e}")
+            chi2, p_chi2 = np.nan, np.nan
+
         rows.append({
-            'Коэффициент': col, 'Shapiro_W': W, 'Shapiro_p': p_sh,
-            'KS_stat': ks_s, 'KS_p': p_ks, 'Chi2': chi2, 'Chi2_p': p_chi2,
+            'Коэффициент': col,
+            'Shapiro_W': W,
+            'Shapiro_p': p_sh,
+            'KS_stat': ks_s,
+            'KS_p': p_ks,
+            'Chi2': chi2,
+            'Chi2_p': p_chi2,
             'Нормально_0.05': bool((p_sh > 0.05) and (p_ks > 0.05) and (p_chi2 > 0.05))
         })
     return pd.DataFrame(rows)
@@ -163,6 +200,7 @@ def find_strong_correlations(corr, pvals, threshold=0.7):
 
 def plot_corr_heatmap(corr, path, title):
     plt.figure(figsize=(16, 13))
+    # Если хочешь положительные синим, а отрицательные красным — замени на cmap='RdBu'
     sns.heatmap(corr, cmap='RdBu_r', center=0, vmin=-1, vmax=1,
                 annot=True, fmt='.2f', annot_kws={'size': 7},
                 square=True, linewidths=0.5, linecolor='white',

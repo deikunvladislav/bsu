@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Картинг-Центр — Бронирование заездов</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- ОБЩАЯ ШАПКА САЙТА (header) - одна на все экраны -->
+<!-- ============================================ -->
+<header class="site-header">
+    <div class="logo">
+        <span class="logo-icon">🏁</span>
+        <span class="logo-text">Картинг-Центр</span>
+    </div>
+    <nav class="main-nav" aria-label="Главное меню">
+        <ul>
+            <li><a href="#screen-main">Главная</a></li>
+            <li><a href="#screen-booking">Забронировать</a></li>
+            <li><a href="#screen-my-bookings">Мои брони</a></li>
+            <li><a href="#screen-subscription">Абонемент</a></li>
+            <li><a href="#screen-equipment">Экипировка</a></li>
+            <li><a href="#screen-reports">Отчёты</a></li>
+            <li><a href="#screen-admin">Админ</a></li>
+        </ul>
+    </nav>
+    <div class="header-actions">
+        <a href="#screen-login" class="btn btn-outline">Войти</a>
+        <a href="#screen-register" class="btn btn-primary">Регистрация</a>
+    </div>
+</header>
+
+<main class="site-main">
+
+    <!-- Навигационная подсказка (требование задания — отмечать связи между экранами) -->
+    <p class="nav-hint">Прототип SPA. Ниже показаны все экраны приложения. Стрелки и подсказки объясняют переходы между экранами.</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 1. ГЛАВНАЯ ФОРМА -->
+    <!-- ============================================ -->
+    <section id="screen-main" class="screen">
+        <h2 class="screen-title">Экран: Главная</h2>
+
+        <!-- Промо-баннер -->
+        <article class="promo">
+            <div class="promo-text">
+                <h3>Скидка 20% на первый заезд!</h3>
+                <p>Забронируйте заезд онлайн и получите скидку на первое посещение.</p>
+                <a href="#screen-booking" class="btn btn-primary">Забронировать сейчас</a>
+            </div>
+            <div class="promo-image" aria-hidden="true">🏎️</div>
+        </article>
+
+        <!-- Список площадок -->
+        <section class="content-block">
+            <header class="block-header">
+                <h3>Наши площадки</h3>
+                <div class="block-controls">
+                    <button type="button" class="btn btn-sm">Сортировать по названию ↑</button>
+                    <button type="button" class="btn btn-sm">Сортировать по вместимости ↓</button>
+                </div>
+            </header>
+
+            <ul class="track-grid">
+                <li class="track-card">
+                    <h4>Трек на Ленина</h4>
+                    <p class="muted">ул. Ленина, 1</p>
+                    <p>Вместимость: 20 человек</p>
+                    <p>Длина трассы: 800 м</p>
+                    <a href="#screen-booking" class="btn btn-primary">Забронировать</a>
+                </li>
+                <li class="track-card">
+                    <h4>Трек на Победы</h4>
+                    <p class="muted">пр. Победы, 45</p>
+                    <p>Вместимость: 15 человек</p>
+                    <p>Длина трассы: 650 м</p>
+                    <a href="#screen-booking" class="btn btn-primary">Забронировать</a>
+                </li>
+                <li class="track-card">
+                    <h4>Трек у Моря</h4>
+                    <p class="muted">ул. Приморская, 12</p>
+                    <p>Вместимость: 25 человек</p>
+                    <p>Длина трассы: 1000 м</p>
+                    <a href="#screen-booking" class="btn btn-primary">Забронировать</a>
+                </li>
+            </ul>
+
+            <button type="button" class="btn btn-more">Показать ещё площадки</button>
+            <!-- Button loads more tracks from the server (pagination) -->
+        </section>
+
+        <!-- Ближайшие слоты -->
+        <section class="content-block">
+            <h3>Ближайшие свободные слоты</h3>
+            <ul class="slots-list">
+                <li>
+                    <span class="slot-date">12.10.2026 15:00</span>
+                    <span class="slot-track">Трек на Ленина</span>
+                    <a href="#screen-booking" class="btn btn-sm">Выбрать</a>
+                </li>
+                <li>
+                    <span class="slot-date">12.10.2026 18:00</span>
+                    <span class="slot-track">Трек на Победы</span>
+                    <a href="#screen-booking" class="btn btn-sm">Выбрать</a>
+                </li>
+                <li>
+                    <span class="slot-date">13.10.2026 11:00</span>
+                    <span class="slot-track">Трек у Моря</span>
+                    <a href="#screen-booking" class="btn btn-sm">Выбрать</a>
+                </li>
+            </ul>
+        </section>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Авторизация» по кнопке «Войти» в шапке</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 2. АВТОРИЗАЦИЯ -->
+    <!-- ============================================ -->
+    <section id="screen-login" class="screen">
+        <h2 class="screen-title">Экран: Авторизация</h2>
+
+        <form class="form" action="#" method="post">
+            <h3>Вход в систему</h3>
+
+            <label for="login-email">Email или телефон</label>
+            <input type="email" id="login-email" name="email" required placeholder="example@mail.ru">
+
+            <label for="login-password">Пароль</label>
+            <input type="password" id="login-password" name="password" required minlength="6" placeholder="Минимум 6 символов">
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Войти</button>
+                <button type="button" class="btn btn-link">Забыли пароль?</button>
+            </div>
+
+            <p class="form-hint">Нет аккаунта? <a href="#screen-register">Зарегистрироваться</a></p>
+            <!-- Link to registration screen -->
+        </form>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Регистрация» по ссылке «Зарегистрироваться»</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 3. РЕГИСТРАЦИЯ -->
+    <!-- ============================================ -->
+    <section id="screen-register" class="screen">
+        <h2 class="screen-title">Экран: Регистрация</h2>
+
+        <form class="form" action="#" method="post">
+            <h3>Новый аккаунт</h3>
+
+            <label for="reg-fio">ФИО</label>
+            <input type="text" id="reg-fio" name="fio" required placeholder="Иванов Иван Иванович">
+
+            <label for="reg-phone">Телефон</label>
+            <input type="tel" id="reg-phone" name="phone" required placeholder="+375291234567">
+
+            <label for="reg-email">Email</label>
+            <input type="email" id="reg-email" name="email" required placeholder="example@mail.ru">
+
+            <label for="reg-password">Пароль</label>
+            <input type="password" id="reg-password" name="password" required minlength="6">
+
+            <label for="reg-password-repeat">Повторите пароль</label>
+            <input type="password" id="reg-password-repeat" name="passwordRepeat" required minlength="6">
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+                <a href="#screen-login" class="btn btn-link">Уже есть аккаунт</a>
+            </div>
+        </form>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Бронирование заезда» по кнопке «Забронировать»</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 4. БРОНИРОВАНИЕ ЗАЕЗДА (форма добавления) -->
+    <!-- ============================================ -->
+    <section id="screen-booking" class="screen">
+        <h2 class="screen-title">Экран: Бронирование заезда (добавление)</h2>
+
+        <form class="form" action="#" method="post">
+            <h3>Новая бронь</h3>
+
+            <label for="book-track">Площадка</label>
+            <select id="book-track" name="track" required>
+                <option value="">— выберите площадку —</option>
+                <option value="1">Трек на Ленина</option>
+                <option value="2">Трек на Победы</option>
+                <option value="3">Трек у Моря</option>
+            </select>
+
+            <label for="book-date">Дата</label>
+            <input type="date" id="book-date" name="date" required>
+
+            <label for="book-time">Время</label>
+            <select id="book-time" name="time" required>
+                <option value="">— выберите время —</option>
+                <option value="10:00">10:00</option>
+                <option value="11:00">11:00</option>
+                <option value="15:00">15:00</option>
+                <option value="18:00">18:00</option>
+            </select>
+
+            <label for="book-kart">Тип машины</label>
+            <select id="book-kart" name="kart" required>
+                <option value="child">Детская</option>
+                <option value="single">Одиночная</option>
+                <option value="double">Для двоих</option>
+            </select>
+
+            <label class="checkbox-label">
+                <input type="checkbox" id="book-trainer" name="trainer">
+                Обучение с тренером
+            </label>
+            <!-- Checkbox shows the trainer selection below when checked -->
+
+            <fieldset class="fieldset">
+                <legend>Выбор тренера</legend>
+                <label class="radio-label">
+                    <input type="radio" name="trainer" value="1">
+                    Петров П.П. (стаж 5 лет)
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="trainer" value="2">
+                    Сидоров С.С. (стаж 3 года)
+                </label>
+            </fieldset>
+
+            <div class="form-summary">
+                <p>Предварительная стоимость: <strong>50 руб.</strong></p>
+                <p>С учётом VIP-скидки 10%: <strong>45 руб.</strong></p>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Подтвердить бронь</button>
+                <button type="button" class="btn btn-secondary">Отмена</button>
+            </div>
+        </form>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Редактирование брони» по кнопке «Редактировать» в списке «Мои брони»</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 5. РЕДАКТИРОВАНИЕ БРОНИ -->
+    <!-- ============================================ -->
+    <section id="screen-edit-booking" class="screen">
+        <h2 class="screen-title">Экран: Редактирование брони</h2>
+
+        <form class="form" action="#" method="post">
+            <p class="form-info">Бронь №1 от 10.10.2026</p>
+
+            <label for="edit-date">Новая дата</label>
+            <input type="date" id="edit-date" name="date" value="2026-10-12">
+
+            <label for="edit-time">Новое время</label>
+            <select id="edit-time" name="time">
+                <option value="15:00" selected>15:00</option>
+                <option value="18:00">18:00</option>
+                <option value="11:00">11:00</option>
+            </select>
+
+            <label for="edit-kart">Тип машины</label>
+            <select id="edit-kart" name="kart">
+                <option value="single" selected>Одиночная</option>
+                <option value="double">Для двоих</option>
+                <option value="child">Детская</option>
+            </select>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <button type="button" class="btn btn-secondary">Отмена</button>
+                <a href="#screen-delete-booking" class="btn btn-danger">Удалить бронь</a>
+            </div>
+            <!-- Delete button opens delete confirmation -->
+        </form>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Удаление брони» по кнопке «Удалить бронь»</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 6. УДАЛЕНИЕ БРОНИ -->
+    <!-- ============================================ -->
+    <section id="screen-delete-booking" class="screen">
+        <h2 class="screen-title">Экран: Удаление брони</h2>
+
+        <div class="confirm-dialog">
+            <h3>Вы уверены, что хотите удалить бронь?</h3>
+            <p>Бронь №1 на 12.10.2026, 15:00</p>
+            <p class="muted">Это действие невозможно отменить.</p>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-danger">Удалить</button>
+                <a href="#screen-my-bookings" class="btn btn-secondary">Отмена</a>
+            </div>
+        </div>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Мои брони» (просмотр и поиск)</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 7. МОИ БРОНИ (поиск и просмотр) -->
+    <!-- ============================================ -->
+    <section id="screen-my-bookings" class="screen">
+        <h2 class="screen-title">Экран: Мои брони</h2>
+
+        <form class="filter-form" action="#" method="get">
+            <div class="filter-row">
+                <label for="filter-date-from">С</label>
+                <input type="date" id="filter-date-from" name="dateFrom">
+
+                <label for="filter-date-to">По</label>
+                <input type="date" id="filter-date-to" name="dateTo">
+
+                <label for="filter-status">Статус</label>
+                <select id="filter-status" name="status">
+                    <option value="all">Все</option>
+                    <option value="active">Активные</option>
+                    <option value="cancelled">Отменённые</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Применить фильтр</button>
+                <button type="button" class="btn">Сбросить</button>
+            </div>
+        </form>
+
+        <div class="block-controls">
+            <button type="button" class="btn btn-sm">Сортировать по дате ↑</button>
+            <button type="button" class="btn btn-sm">Сортировать по цене ↓</button>
+        </div>
+
+        <ul class="bookings-list">
+            <li class="booking-item">
+                <div class="booking-info">
+                    <h4>Бронь №1</h4>
+                    <p>Дата: 12.10.2026 15:00</p>
+                    <p>Площадка: Трек на Ленина</p>
+                    <p>Стоимость: 45 руб.</p>
+                    <p>Статус: <span class="status status-active">Активна</span></p>
+                </div>
+                <div class="booking-actions">
+                    <a href="#screen-edit-booking" class="btn btn-sm">Редактировать</a>
+                    <a href="#screen-delete-booking" class="btn btn-sm btn-danger">Удалить</a>
+                </div>
+            </li>
+            <li class="booking-item">
+                <div class="booking-info">
+                    <h4>Бронь №2</h4>
+                    <p>Дата: 15.10.2026 18:00</p>
+                    <p>Площадка: Трек на Победы</p>
+                    <p>Стоимость: 50 руб.</p>
+                    <p>Статус: <span class="status status-active">Активна</span></p>
+                </div>
+                <div class="booking-actions">
+                    <a href="#screen-edit-booking" class="btn btn-sm">Редактировать</a>
+                    <a href="#screen-delete-booking" class="btn btn-sm btn-danger">Удалить</a>
+                </div>
+            </li>
+            <li class="booking-item">
+                <div class="booking-info">
+                    <h4>Бронь №3</h4>
+                    <p>Дата: 01.10.2026 11:00</p>
+                    <p>Площадка: Трек у Моря</p>
+                    <p>Стоимость: 45 руб.</p>
+                    <p>Статус: <span class="status status-cancelled">Отменена</span></p>
+                </div>
+                <div class="booking-actions">
+                    <button type="button" class="btn btn-sm" disabled>Редактировать</button>
+                </div>
+            </li>
+        </ul>
+
+        <nav class="pagination" aria-label="Постраничная навигация">
+            <button type="button" class="btn btn-sm" disabled>← Назад</button>
+            <span class="pagination-info">Страница 1 из 3</span>
+            <button type="button" class="btn btn-sm">Вперёд →</button>
+        </nav>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Покупка абонемента» через меню</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 8. ПОКУПКА АБОНЕМЕНТА -->
+    <!-- ============================================ -->
+    <section id="screen-subscription" class="screen">
+        <h2 class="screen-title">Экран: Покупка абонемента</h2>
+
+        <form class="form" action="#" method="post">
+            <h3>Выбор абонемента</h3>
+
+            <label for="sub-type">Тип абонемента</label>
+            <select id="sub-type" name="subscriptionType" required>
+                <option value="4">4 занятия — 150 руб.</option>
+                <option value="6">6 занятий — 210 руб.</option>
+                <option value="8">8 занятий — 260 руб.</option>
+                <option value="12">12 занятий — 360 руб.</option>
+                <option value="unlimited">Безлимит на 30 дней — 500 руб.</option>
+            </select>
+
+            <div class="form-summary">
+                <p>Стоимость без скидки: <strong>150 руб.</strong></p>
+                <p>С учётом VIP-скидки: <strong>135 руб.</strong></p>
+            </div>
+
+            <fieldset class="fieldset">
+                <legend>Способ оплаты</legend>
+                <label class="radio-label">
+                    <input type="radio" name="payMethod" value="card" checked>
+                    Банковская карта
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="payMethod" value="cash">
+                    Наличные в офисе
+                </label>
+            </fieldset>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Оплатить</button>
+                <button type="button" class="btn btn-secondary">Отмена</button>
+            </div>
+        </form>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Магазин экипировки» через меню</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 9. МАГАЗИН ЭКИПИРОВКИ -->
+    <!-- ============================================ -->
+    <section id="screen-equipment" class="screen">
+        <h2 class="screen-title">Экран: Магазин экипировки</h2>
+
+        <form class="filter-form" action="#" method="get">
+            <div class="filter-row">
+                <label for="eq-category">Категория</label>
+                <select id="eq-category" name="category">
+                    <option value="all">Все</option>
+                    <option value="helmet">Шлемы</option>
+                    <option value="gloves">Перчатки</option>
+                    <option value="suit">Комбинезоны</option>
+                </select>
+                <label for="eq-price-from">Цена от</label>
+                <input type="number" id="eq-price-from" name="priceFrom" min="0">
+                <label for="eq-price-to">до</label>
+                <input type="number" id="eq-price-to" name="priceTo" min="0">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Применить фильтр</button>
+                <button type="button" class="btn">Сбросить</button>
+            </div>
+        </form>
+
+        <ul class="equipment-grid">
+            <li class="equipment-card">
+                <div class="equipment-image" aria-hidden="true">🪖</div>
+                <h4>Шлем спортивный</h4>
+                <p class="muted">Категория: Шлемы</p>
+                <p>Цена: <strong>120 руб.</strong></p>
+                <button type="button" class="btn btn-primary btn-sm">В корзину</button>
+                <!-- Button adds item to cart -->
+            </li>
+            <li class="equipment-card">
+                <div class="equipment-image" aria-hidden="true">🧤</div>
+                <h4>Перчатки гоночные</h4>
+                <p class="muted">Категория: Перчатки</p>
+                <p>Цена: <strong>45 руб.</strong></p>
+                <button type="button" class="btn btn-primary btn-sm">В корзину</button>
+            </li>
+            <li class="equipment-card">
+                <div class="equipment-image" aria-hidden="true">🥋</div>
+                <h4>Комбинезон</h4>
+                <p class="muted">Категория: Комбинезоны</p>
+                <p>Цена: <strong>250 руб.</strong></p>
+                <button type="button" class="btn btn-primary btn-sm">В корзину</button>
+            </li>
+        </ul>
+
+        <aside class="cart">
+            <h3>Корзина</h3>
+            <ul class="cart-list">
+                <li>
+                    <span>Шлем спортивный</span>
+                    <span>120 руб.</span>
+                    <button type="button" class="btn-remove" aria-label="Удалить из корзины">×</button>
+                </li>
+            </ul>
+            <p class="cart-total">Итого: <strong>120 руб.</strong></p>
+            <button type="button" class="btn btn-primary">Оформить заказ</button>
+        </aside>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Отчёты руководителя» через меню</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 10. ОТЧЁТЫ РУКОВОДИТЕЛЯ -->
+    <!-- ============================================ -->
+    <section id="screen-reports" class="screen">
+        <h2 class="screen-title">Экран: Отчёты руководителя</h2>
+
+        <form class="filter-form" action="#" method="get">
+            <div class="filter-row">
+                <label for="report-period-from">С</label>
+                <input type="date" id="report-period-from" name="periodFrom">
+                <label for="report-period-to">По</label>
+                <input type="date" id="report-period-to" name="periodTo">
+
+                <label for="report-type">Тип отчёта</label>
+                <select id="report-type" name="reportType">
+                    <option value="load">Загрузка площадок</option>
+                    <option value="clients">По клиентам</option>
+                    <option value="revenue">По выручке</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Сформировать</button>
+                <button type="button" class="btn">Экспорт в PDF</button>
+            </div>
+        </form>
+
+        <article class="report-output">
+            <h3>Отчёт по загрузке площадок</h3>
+            <p class="muted">Период: 01.10.2026 — 31.10.2026</p>
+            <ul class="report-list">
+                <li><span>Трек на Ленина</span><span>120 часов</span></li>
+                <li><span>Трек на Победы</span><span>95 часов</span></li>
+                <li><span>Трек у Моря</span><span>110 часов</span></li>
+            </ul>
+            <p>Средняя загрузка: <strong>108 часов</strong></p>
+        </article>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Панель администратора» через меню</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 11. ПАНЕЛЬ АДМИНИСТРАТОРА -->
+    <!-- ============================================ -->
+    <section id="screen-admin" class="screen">
+        <h2 class="screen-title">Экран: Панель администратора</h2>
+
+        <section class="content-block">
+            <h3>Телефонные заказы</h3>
+            <ul class="orders-list">
+                <li class="order-item">
+                    <div class="order-info">
+                        <p><strong>Заказ №1</strong> от 10.10.2026</p>
+                        <p>Клиент: Иванов И.И., тел. +375291234567</p>
+                        <p>Бронь на 12.10.2026 15:00, Трек на Ленина</p>
+                    </div>
+                    <div class="order-actions">
+                        <button type="button" class="btn btn-sm">Отметить как выполненный</button>
+                        <button type="button" class="btn btn-sm btn-danger">Отменить</button>
+                    </div>
+                </li>
+                <li class="order-item">
+                    <div class="order-info">
+                        <p><strong>Заказ №2</strong> от 11.10.2026</p>
+                        <p>Клиент: Петрова А.С., тел. +375291112233</p>
+                        <p>Бронь на 14.10.2026 18:00, Трек у Моря</p>
+                    </div>
+                    <div class="order-actions">
+                        <button type="button" class="btn btn-sm">Отметить как выполненный</button>
+                        <button type="button" class="btn btn-sm btn-danger">Отменить</button>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <section class="content-block">
+            <header class="block-header">
+                <h3>Управление пользователями</h3>
+                <button type="button" class="btn btn-primary btn-sm">+ Добавить пользователя</button>
+            </header>
+            <ul class="users-list">
+                <li class="user-item">
+                    <span>Иванов И.И. — клиент</span>
+                    <div>
+                        <button type="button" class="btn btn-sm">Редактировать</button>
+                        <button type="button" class="btn btn-sm btn-danger">Удалить</button>
+                    </div>
+                </li>
+                <li class="user-item">
+                    <span>Петров П.П. — тренер</span>
+                    <div>
+                        <button type="button" class="btn btn-sm">Редактировать</button>
+                        <button type="button" class="btn btn-sm btn-danger">Удалить</button>
+                    </div>
+                </li>
+                <li class="user-item">
+                    <span>Сидоров С.С. — тренер</span>
+                    <div>
+                        <button type="button" class="btn btn-sm">Редактировать</button>
+                        <button type="button" class="btn btn-sm btn-danger">Удалить</button>
+                    </div>
+                </li>
+            </ul>
+            <nav class="pagination" aria-label="Постраничная навигация">
+                <button type="button" class="btn btn-sm" disabled>← Назад</button>
+                <span class="pagination-info">Страница 1 из 2</span>
+                <button type="button" class="btn btn-sm">Вперёд →</button>
+            </nav>
+        </section>
+    </section>
+
+    <p class="nav-hint">→ Переход на экран «Ошибка» при сбое системы или неверном вводе</p>
+
+    <!-- ============================================ -->
+    <!-- ЭКРАН 12. ОШИБКА -->
+    <!-- ============================================ -->
+    <section id="screen-error" class="screen screen-error">
+        <h2 class="screen-title">Экран: Ошибка</h2>
+
+        <div class="error-box">
+            <h3>Что-то пошло не так</h3>
+            <p>К сожалению, произошла ошибка. Попробуйте позже или вернитесь на главную.</p>
+            <p class="error-code">Код ошибки: 500</p>
+            <div class="form-actions">
+                <a href="#screen-main" class="btn btn-primary">Вернуться на главную</a>
+                <button type="button" class="btn btn-secondary">Повторить</button>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ============================================ -->
+<!-- ОБЩИЙ ПОДВАЛ САЙТА (footer) -->
+<!-- ============================================ -->
+<footer class="site-footer">
+    <div class="footer-column">
+        <h3>Контакты</h3>
+        <p>г. Минск, ул. Ленина, 1</p>
+        <p>Телефон: +375 (29) 123-45-67</p>
+        <p>Email: info@karting.by</p>
+    </div>
+    <div class="footer-column">
+        <h3>Режим работы</h3>
+        <p>Пн–Пт: 10:00 – 22:00</p>
+        <p>Сб–Вс: 09:00 – 23:00</p>
+    </div>
+    <div class="footer-column">
+        <h3>Разделы</h3>
+        <ul>
+            <li><a href="#screen-main">Главная</a></li>
+            <li><a href="#screen-booking">Бронирование</a></li>
+            <li><a href="#screen-equipment">Экипировка</a></li>
+            <li><a href="#screen-subscription">Абонементы</a></li>
+        </ul>
+    </div>
+    <div class="footer-column">
+        <h3>Мы в соцсетях</h3>
+        <ul>
+            <li><a href="#">Telegram</a></li>
+            <li><a href="#">Instagram</a></li>
+            <li><a href="#">YouTube</a></li>
+        </ul>
+    </div>
+    <p class="copyright">© 2026 Картинг-Центр. Все права защищены.</p>
+</footer>
+
+</body>
+</html>

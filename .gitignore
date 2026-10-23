@@ -62,6 +62,7 @@ boost/
 *.sav
 *.enc
 *.xlsx
+*.pkl
 
 # === exclude images ===
 *.png

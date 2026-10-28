@@ -9,6 +9,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
+import pickle
 
 warnings.filterwarnings('ignore')
 
@@ -309,6 +310,14 @@ def normalize_data(df_c, bounds):
         df_n[col] = df_n[col].clip(0, 1)
     return df_n
 
+def save_pickle(obj, name):
+    """Сохраняет любой объект (DataFrame, dict, ...) в .pkl в RESULT_DIR."""
+    path = os.path.join(RESULT_DIR, name + '.pkl')
+    with open(path, 'wb') as f:
+        pickle.dump(obj, f)
+    print(f"  Сохранено: {path}")
+    return path
+
 def main():
     df, _ = load_sav(SAV_PATH)
     df = drop_unwanted_columns(df)
@@ -330,6 +339,10 @@ def main():
 
     df_norm = normalize_data(df_censored, bounds)
     save_table(df_norm, '06_нормированные')
+    
+    save_pickle(df_norm, 'norm_data')
+    save_pickle(bounds, 'bounds')
+    
     print(f"Цензурирование и нормировка выполнены. Строк: {len(df_norm)}")
 
     print("\n=== Корреляции по НОРМИРОВАННЫМ данным ===")
